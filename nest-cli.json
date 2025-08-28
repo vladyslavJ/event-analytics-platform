@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/universe-group-test-case/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/universe-group-test-case/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/universe-group-test-case",
+  "projects": {
+    "fb-collector": {
+      "type": "application",
+      "root": "apps/fb-collector",
+      "entryFile": "main",
+      "sourceRoot": "apps/fb-collector/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/fb-collector/tsconfig.app.json"
+      }
+    },
+    "gateway": {
+      "type": "application",
+      "root": "apps/gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/gateway/tsconfig.app.json"
+      }
+    },
+    "reporter": {
+      "type": "application",
+      "root": "apps/reporter",
+      "entryFile": "main",
+      "sourceRoot": "apps/reporter/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/reporter/tsconfig.app.json"
+      }
+    },
+    "ttk-collector": {
+      "type": "application",
+      "root": "apps/ttk-collector",
+      "entryFile": "main",
+      "sourceRoot": "apps/ttk-collector/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/ttk-collector/tsconfig.app.json"
+      }
+    }
+  }
+}

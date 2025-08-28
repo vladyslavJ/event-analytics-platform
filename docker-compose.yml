@@ -1,0 +1,139 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: universe
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - services_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U user -d universe']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats_server
+    command: '-js' # Вмикає режим JetStream
+    ports:
+      - '4222:4222' # для клієнтів
+      - '8222:8222' # для http моніторингу
+    networks:
+      - services_network
+    healthcheck:
+      test: ['CMD', 'nats', 'server', 'check']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gateway:
+    container_name: gateway_service
+    build:
+      context: .
+      dockerfile: ./apps/gateway/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/universe?schema=public
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - services_network
+
+  fb-collector:
+    container_name: fb_collector_service
+    build:
+      context: .
+      dockerfile: ./apps/fb-collector/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/universe?schema=public
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - services_network
+
+  ttk-collector:
+    container_name: ttk_collector_service
+    build:
+      context: .
+      dockerfile: ./apps/ttk-collector/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/universe?schema=public
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - services_network
+
+  reporter:
+    container_name: reporter_service
+    build:
+      context: .
+      dockerfile: ./apps/reporter/Dockerfile
+    ports:
+      - '3001:3001'
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/universe?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - services_network
+
+  publisher:
+    image: andriiuni/events
+    container_name: publisher_service
+    environment:
+      - EVENT_ENDPOINT=http://gateway:3000/events
+    depends_on:
+      - gateway
+    networks:
+      - services_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus_monitoring
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - services_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana_dashboard
+    ports:
+      - '4000:3000'
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - services_network
+
+networks:
+  services_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  grafana_data:
