@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "event-analytics-services"
+    scrape_interval: 5s
+    metrics_path: health/metrics
+    static_configs:
+      - targets:
+          - "gateway:3000"
+          - "fb-collector:3000"
+          - "ttk-collector:3000"
+          - "reporter:3000"

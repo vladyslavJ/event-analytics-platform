@@ -21,14 +21,14 @@ services:
   nats:
     image: nats:2.10-alpine
     container_name: nats_server
-    command: '-js' # Вмикає режим JetStream
+    command: '-js -m 8222' # Вмикає режим JetStream
     ports:
       - '4222:4222' # для клієнтів
       - '8222:8222' # для http моніторингу
     networks:
       - services_network
     healthcheck:
-      test: ['CMD', 'nats', 'server', 'check']
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8222/healthz || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -50,6 +50,7 @@ services:
         condition: service_healthy
     networks:
       - services_network
+    restart: on-failure
 
   fb-collector:
     container_name: fb_collector_service
@@ -66,6 +67,7 @@ services:
         condition: service_healthy
     networks:
       - services_network
+    restart: on-failure
 
   ttk-collector:
     container_name: ttk_collector_service
@@ -82,6 +84,7 @@ services:
         condition: service_healthy
     networks:
       - services_network
+    restart: on-failure
 
   reporter:
     container_name: reporter_service
@@ -89,7 +92,7 @@ services:
       context: .
       dockerfile: ./apps/reporter/Dockerfile
     ports:
-      - '3001:3001'
+      - '3001:3000'
     environment:
       - DATABASE_URL=postgresql://user:password@postgres:5432/universe?schema=public
     depends_on:
@@ -97,6 +100,7 @@ services:
         condition: service_healthy
     networks:
       - services_network
+    restart: on-failure
 
   publisher:
     image: andriiuni/events
@@ -114,7 +118,7 @@ services:
     ports:
       - '9090:9090'
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     networks:

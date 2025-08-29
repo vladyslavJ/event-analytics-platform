@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
-import { GatewayController } from './gateway.controller';
-import { GatewayService } from './gateway.service';
+import { TerminusModule } from '@nestjs/terminus';
+import { HttpModule } from '@nestjs/axios';
+import { HealthController } from './health/health.controller';
+import { EventsController } from './events/events.controller';
 
 @Module({
-  imports: [],
-  controllers: [GatewayController],
-  providers: [GatewayService],
+  imports: [TerminusModule, HttpModule],
+  controllers: [HealthController, EventsController],
+  providers: [],
 })
 export class GatewayModule {}
