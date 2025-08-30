@@ -1,14 +1,42 @@
-import { Controller, Post, Body, Logger } from '@nestjs/common';
+import { Inject, Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import type { EventsServiceInterface } from './interfaces/events-service.interface';
+import { EventsControllerInterface } from 'libs/common/interfaces/events-controller.interface';
+import { EventsServiceDiTokens } from 'libs/common/di/events-di-tokens';
+import type { NatsServiceInterface } from '../nats/interfaces/nats-service.interface';
+import { NatsServiceDiTokens } from 'libs/common/di/nats-di-tokens';
 
 @Controller('events')
-export class EventsController {
-  private readonly logger = new Logger(EventsController.name);
+export class EventsController implements EventsControllerInterface {
+  constructor(
+    @Inject(EventsServiceDiTokens.EVENTS_SERVICE)
+    private readonly eventsService: EventsServiceInterface,
+    @Inject(NatsServiceDiTokens.NATS_SERVICE)
+    private readonly natsService: NatsServiceInterface,
+  ) {}
 
   @Post()
-  handleEvents(@Body() payload: any) {
-    this.logger.log('Received events:');
-    this.logger.log(JSON.stringify(payload, null, 2));
+  @HttpCode(HttpStatus.ACCEPTED)
+  async handleEvents(@Body() events: Record<string, unknown>[]) {
+    if (!Array.isArray(events)) {
+      return {
+        message: 'Rejected. Events must be an array.',
+      };
+    }
 
-    return { status: 'ok' };
+    const { validEvents, invalidCount } = this.eventsService.processAndFilterEvents(events);
+
+    const publishPromises = validEvents.map(event => {
+      const { source } = event;
+      const subject = `events.${source}`;
+      return this.natsService.publish(subject, event);
+    });
+
+    await Promise.all(publishPromises);
+
+    return {
+      message: 'Events are being processed.',
+      accepted: validEvents.length,
+      rejected: invalidCount,
+    };
   }
 }
