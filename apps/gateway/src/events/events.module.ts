@@ -1,17 +1,18 @@
 import { Module } from '@nestjs/common';
 import { EventsController } from './events.controller';
 import { EventsService } from './events.service';
-import { NatsModule } from '../nats/nats.module';
 import { EventsServiceDiTokens } from 'libs/common/di/events-di-tokens';
+import { NatsPublisherService } from 'libs/nats/nats-publisher.service';
 
 @Module({
-  imports: [NatsModule],
+  imports: [],
   controllers: [EventsController],
   providers: [
     {
       provide: EventsServiceDiTokens.EVENTS_SERVICE,
       useClass: EventsService,
     },
+    NatsPublisherService,
   ],
   exports: [EventsServiceDiTokens.EVENTS_SERVICE],
 })

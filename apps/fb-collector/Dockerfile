@@ -7,20 +7,30 @@ COPY package*.json ./
 
 RUN npm install
 
+COPY ./prisma ./prisma
+
+COPY ./libs/prisma-client ./libs/prisma-client
+
 COPY . .
 
-RUN npm run build fb-collector
+RUN npx prisma generate
 
+RUN npm run build fb-collector
 
 # --- Runner ---
 FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/prisma ./prisma
+COPY --from=builder /usr/src/app/dist/apps/fb-collector ./dist/apps/fb-collector
+COPY --from=builder /usr/src/app/package*.json ./
 
 RUN npm install --omit=dev
 
-COPY --from=builder /usr/src/app/dist ./dist
+RUN apk add --no-cache tini
+
+ENTRYPOINT ["/sbin/tini", "--"]
 
 CMD ["node", "dist/apps/fb-collector/main.js"]

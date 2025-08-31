@@ -1,7 +1,7 @@
-import { Device } from "../enums/tiktok-event.enum";
-import { EventSource } from "../enums/event-source.enum";
-import { FunnelStage } from "../enums/funnel-stage.enum";
-import { TiktokEventType, TiktokEngagementType } from "../types/tiktok-event.type";
+import { Device } from '../enums/tiktok-event.enum';
+import { EventSource } from '../enums/event-source.enum';
+import { FunnelStage } from '../enums/funnel-stage.enum';
+import { TiktokEventType, TiktokEngagementType } from '../types/tiktok-event.type';
 
 export interface TiktokUserInterface {
   userId: string;
@@ -23,7 +23,6 @@ export interface TiktokEngagementBottomInterface {
   purchasedItem: string | null;
   purchaseAmount: string | null;
 }
-
 
 export interface TiktokEventInterface {
   eventId: string;

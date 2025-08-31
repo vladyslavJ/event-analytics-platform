@@ -1,3 +1,4 @@
-export const NatsServiceDiTokens = {
-  NATS_SERVICE: Symbol.for('NATS_SERVICE'),
+export const NatsDiTokens = {
+  NATS_CONNECTION: Symbol('NATS_CONNECTION'),
+  JETSTREAM_CLIENT: Symbol('JETSTREAM_CLIENT'),
 };

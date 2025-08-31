@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  eventId     String      @unique
+  timestamp   DateTime
+  source      Source
+  funnelStage FunnelStage
+  eventType   String
+  createdAt   DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+  engagement  Engagement?
+
+  @@index([timestamp, source, funnelStage, eventType])
+  @@index([userId, timestamp])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  source       Source
+  sourceUserId String   
+  name         String?
+  age          Int?
+  gender       String?
+  country      String?  
+  city         String?  
+  followers    Int?     
+  extra        Json     
+
+  events       Event[]
+
+  @@unique([source, sourceUserId]) 
+  @@index([country])
+  @@index([followers])
+}
+
+model Engagement {
+  id             String   @id @default(cuid())
+  engagementType String
+  adId           String?
+  campaignId     String?
+  videoId        String?
+  purchaseAmount Decimal?
+  details        Json
+
+  event          Event    @relation(fields: [eventId], references: [id])
+  eventId        String   @unique
+
+  @@index([campaignId])
+  @@index([adId])
+  @@index([videoId])
+}
+
+enum Source {
+  facebook
+  tiktok
+}
+
+enum FunnelStage {
+  top
+  bottom
+}

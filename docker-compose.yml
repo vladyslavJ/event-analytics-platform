@@ -3,20 +3,33 @@ services:
     image: postgres:15-alpine
     container_name: postgres_db
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: universe
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: events_db
     ports:
-      - '5432:5432'
+      - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - services_network
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U user -d universe']
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d events_db']
       interval: 5s
       timeout: 5s
       retries: 5
+
+  migrations:
+    build:
+      context: .
+      dockerfile: ./libs/prisma-client/Dockerfile
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+    networks:
+      - services_network
 
   nats:
     image: nats:2.10-alpine
@@ -28,7 +41,7 @@ services:
     networks:
       - services_network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8222/healthz || exit 1"]
+      test: ['CMD-SHELL', 'wget -q --spider http://localhost:8222/healthz || exit 1']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -41,13 +54,15 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - DATABASE_URL=postgresql://user:password@postgres:5432/universe?schema=public
+      - DATABASE_URL=${DATABASE_URL}
       - NATS_URL=nats://nats:4222
     depends_on:
       postgres:
         condition: service_healthy
       nats:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       - services_network
     restart: on-failure
@@ -58,13 +73,15 @@ services:
       context: .
       dockerfile: ./apps/fb-collector/Dockerfile
     environment:
-      - DATABASE_URL=postgresql://user:password@postgres:5432/universe?schema=public
+      - DATABASE_URL=${DATABASE_URL}
       - NATS_URL=nats://nats:4222
     depends_on:
       postgres:
         condition: service_healthy
       nats:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       - services_network
     restart: on-failure
@@ -75,13 +92,15 @@ services:
       context: .
       dockerfile: ./apps/ttk-collector/Dockerfile
     environment:
-      - DATABASE_URL=postgresql://user:password@postgres:5432/universe?schema=public
+      - DATABASE_URL=${DATABASE_URL}
       - NATS_URL=nats://nats:4222
     depends_on:
       postgres:
         condition: service_healthy
       nats:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       - services_network
     restart: on-failure
@@ -94,10 +113,12 @@ services:
     ports:
       - '3001:3000'
     environment:
-      - DATABASE_URL=postgresql://user:password@postgres:5432/universe?schema=public
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
       postgres:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       - services_network
     restart: on-failure
