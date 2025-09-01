@@ -4,6 +4,8 @@ import { EventsControllerInterface } from 'libs/common/interfaces/events-control
 import { EventsServiceDiTokens } from 'libs/common/di/events-di-tokens';
 import { NatsPublisherService } from 'libs/nats/nats-publisher.service';
 import { randomUUID } from 'crypto';
+import { MetricsDiTokens } from 'libs/metrics/di/metrics-di-tokens';
+import type { GatewayMetricsServiceInterface } from 'libs/metrics/interfaces/gateway-metrics-service.interface';
 
 @Controller('events')
 export class EventsController implements EventsControllerInterface {
@@ -11,6 +13,8 @@ export class EventsController implements EventsControllerInterface {
     @Inject(EventsServiceDiTokens.EVENTS_SERVICE)
     private readonly eventsService: EventsServiceInterface,
     private readonly natsPublisher: NatsPublisherService,
+    @Inject(MetricsDiTokens.GATEWAY_METRICS_SERVICE)
+    private readonly metricsService: GatewayMetricsServiceInterface,
   ) {}
 
   @Post()
@@ -21,12 +25,17 @@ export class EventsController implements EventsControllerInterface {
         message: 'Rejected. Events must be an array.',
       };
     }
-
+    this.metricsService.incrementAcceptedEvents(events.length);
     const { validEvents, invalidCount } = this.eventsService.processAndFilterEvents(events);
 
-    const publishPromises = validEvents.map(event => {
+    const publishPromises = validEvents.map(async event => {
       const correlationId = randomUUID();
-      return this.natsPublisher.publishEvent({ ...event, correlationId });
+      try {
+        await this.natsPublisher.publishEvent({ ...event, correlationId });
+        this.metricsService.incrementProcessedEvents();
+      } catch (error) {
+        this.metricsService.incrementFailedEvents();
+      }
     });
 
     await Promise.all(publishPromises);

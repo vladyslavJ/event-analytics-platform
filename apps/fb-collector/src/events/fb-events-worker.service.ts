@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { JSONCodec, Subscription, AckPolicy } from 'nats';
+import { JSONCodec, AckPolicy, NatsError } from 'nats';
 import type { JetStreamClient, NatsConnection, Consumer } from 'nats';
 import { NatsDiTokens } from 'libs/nats/di/nats-di-tokens';
 import { FbCollectorService } from '../fb-collector.service';
@@ -8,6 +8,8 @@ import type { LoggerInterface } from 'libs/logger/interfaces/logger.interface';
 import { FacebookEventInterface } from 'libs/common/interfaces/facebook-event.interface';
 import { NATS_CONSTANTS } from 'libs/common/constants/nats.const';
 import { EVENT_CONSUMERS } from 'libs/common/constants/event-consumers.const';
+import { MetricsDiTokens } from 'libs/metrics/di/metrics-di-tokens';
+import type { CollectorsMetricsServiceInterface } from 'libs/metrics/interfaces/collector-metrics-service.interface';
 
 @Injectable()
 export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
@@ -18,6 +20,8 @@ export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
     @Inject(NatsDiTokens.JETSTREAM_CLIENT) private readonly jetstream: JetStreamClient,
     @Inject(NatsDiTokens.NATS_CONNECTION) private readonly natsConnection: NatsConnection,
     private readonly collectorService: FbCollectorService,
+    @Inject(MetricsDiTokens.COLLECTORS_METRICS_SERVICE)
+    private readonly metricsService: CollectorsMetricsServiceInterface,
     @Inject(LoggerDiTokens.LOGGER)
     private readonly logger: LoggerInterface,
   ) {
@@ -26,7 +30,7 @@ export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     this.isShuttingDown = false;
-    await this.startProcessing();
+    await this.connectWithRetry();
   }
 
   async onModuleDestroy() {
@@ -34,6 +38,31 @@ export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
     this.isShuttingDown = true;
     await this.natsConnection.close();
     this.logger.info('Worker has been shut down.');
+  }
+
+  private async connectWithRetry(retries = 5, delay = 5000) {
+    for (let i = 1; i <= retries; i++) {
+      try {
+        this.logger.info(`Attempt ${i} to connect to NATS stream...`);
+        await this.startProcessing();
+        this.logger.info('Successfully connected to NATS stream and started processing.');
+        return;
+      } catch (err) {
+        if (err instanceof NatsError && err.api_error?.err_code === 10059) {
+          this.logger.warn(
+            `Stream not found (attempt ${i}/${retries}). Retrying in ${delay / 1000} seconds...`,
+          );
+          if (i === retries) {
+            this.logger.error('Could not connect to NATS stream after all retries. Shutting down.');
+            throw err;
+          }
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          this.logger.error('An unexpected error occurred during NATS connection.', err);
+          throw err;
+        }
+      }
+    }
   }
 
   private async startProcessing() {
@@ -63,6 +92,7 @@ export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
       try {
         const messages = await consumer.fetch({ max_messages: 10, expires: 5000 });
         for await (const msg of messages) {
+          this.metricsService.incrementConsumed('fb');
           const eventData = this.jsonCodec.decode(msg.data) as FacebookEventInterface & {
             correlationId: string;
           };
@@ -71,7 +101,9 @@ export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
           try {
             await this.collectorService.processFacebookEvent(eventData, eventData.correlationId);
             await msg.ack();
+            this.metricsService.incrementProcessed('fb');
           } catch (processingError) {
+            this.metricsService.incrementFailed('fb');
             this.logger.error(
               `Failed to process event ${eventData.eventId}. It will be redelivered.`,
               processingError,

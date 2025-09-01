@@ -10,7 +10,7 @@ import { ReporterController } from './reporter.controller';
 import { ReporterService } from './reporter.service';
 import { ReportsQueryBuilder } from './reports-query.builder';
 import { HealthController } from './health/health.controller';
-import { ReportsMetricsService } from './metrics/reports-metrics.service';
+import { MetricsModule } from 'libs/metrics/metrics.module';
 
 @Module({
   imports: [
@@ -23,6 +23,7 @@ import { ReportsMetricsService } from './metrics/reports-metrics.service';
     }),
     LoggerModule,
     PrismaClientModule,
+    MetricsModule,
   ],
   controllers: [ReporterController, HealthController],
   providers: [
@@ -32,7 +33,6 @@ import { ReportsMetricsService } from './metrics/reports-metrics.service';
     },
     ReporterService,
     ReportsQueryBuilder,
-    ReportsMetricsService,
   ],
 })
 export class ReporterModule {}

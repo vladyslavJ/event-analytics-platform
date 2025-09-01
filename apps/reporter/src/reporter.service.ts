@@ -8,8 +8,9 @@ import { GetEventsReportDto } from './dto/get-events-report.dto';
 import { GetRevenueReportDto } from './dto/get-revenue-report.dto';
 import { GetDemographicsReportDto } from './dto/get-demographics-report.dto';
 import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
+import { MetricsDiTokens } from 'libs/metrics/di/metrics-di-tokens';
 import type { LoggerInterface } from 'libs/logger/interfaces/logger.interface';
-import { ReportsMetricsService } from './metrics/reports-metrics.service';
+import type { ReportsMetricsServiceInterface } from 'libs/metrics/interfaces/reporter-metrics-service.interface';
 
 @Injectable()
 export class ReporterService implements ReporterServiceInterface {
@@ -17,7 +18,8 @@ export class ReporterService implements ReporterServiceInterface {
     @Inject(PrismaServiceDiTokens.PRISMA_CLIENT)
     private readonly prisma: PrismaClientService,
     private readonly queryBuilder: ReportsQueryBuilder,
-    private readonly metricsService: ReportsMetricsService,
+    @Inject(MetricsDiTokens.REPORTER_METRICS_SERVICE)
+    private readonly metricsService: ReportsMetricsServiceInterface,
     @Inject(LoggerDiTokens.LOGGER)
     private readonly logger: LoggerInterface,
   ) {

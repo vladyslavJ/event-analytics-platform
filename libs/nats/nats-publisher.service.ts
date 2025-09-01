@@ -11,7 +11,8 @@ import { NATS_CONSTANTS } from 'libs/common/constants/nats.const';
 export class NatsPublisherService implements OnModuleInit {
   private readonly jsonCodec = JSONCodec();
   constructor(
-    @Inject(NatsDiTokens.JETSTREAM_CLIENT) private readonly jetstream: JetStreamClient,
+    @Inject(NatsDiTokens.JETSTREAM_CLIENT) 
+    private readonly jetstream: JetStreamClient,
     @Inject(LoggerDiTokens.LOGGER)
     private readonly logger: LoggerInterface,
   ) {

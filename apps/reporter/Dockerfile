@@ -30,7 +30,4 @@ COPY --from=builder /usr/src/app/dist/apps/reporter ./dist/apps/reporter
 # Копіюємо схему Prisma, вона потрібна клієнту для роботи
 COPY --from=builder /usr/src/app/prisma ./prisma
 
-RUN apk add --no-cache tini
-ENTRYPOINT ["/sbin/tini", "--"]
-
 CMD ["node", "dist/apps/reporter/main.js"]

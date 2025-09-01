@@ -1,18 +1,22 @@
-import { Inject, Controller, Get, Header } from '@nestjs/common';
+import { Controller, Get, Header, Inject } from '@nestjs/common';
 import { HealthCheck, HealthCheckService, PrismaHealthIndicator } from '@nestjs/terminus';
-import { register, collectDefaultMetrics } from 'prom-client'; // --- ДОДАНО
 import { PrismaClientService } from 'libs/prisma-client/src/prisma-client.service';
 import { PrismaServiceDiTokens } from 'libs/prisma-client/di/prisma-service-di-tokens';
+import { NatsDiTokens } from 'libs/nats/di/nats-di-tokens';
+import type { NatsHealthIndicatorInterface } from 'libs/nats/interfaces/nats-health-indicator.interface';
+import { register, collectDefaultMetrics } from 'prom-client';
 
-collectDefaultMetrics({ prefix: 'reporter_' });
+collectDefaultMetrics({ prefix: 'fb_collector_' });
 
 @Controller('health')
-export class HealthController {
+export class FbHealthController {
   constructor(
     private readonly health: HealthCheckService,
     private readonly prismaHealth: PrismaHealthIndicator,
     @Inject(PrismaServiceDiTokens.PRISMA_CLIENT)
     private readonly prisma: PrismaClientService,
+    @Inject(NatsDiTokens.NATS_HEALTH_INDICATOR)
+    private readonly natsHealth: NatsHealthIndicatorInterface,
   ) {}
 
   @Get('live')
@@ -24,7 +28,10 @@ export class HealthController {
   @Get('ready')
   @HealthCheck()
   ready() {
-    return this.health.check([() => this.prismaHealth.pingCheck('database', this.prisma)]);
+    return this.health.check([
+      () => this.prismaHealth.pingCheck('database', this.prisma),
+      () => this.natsHealth.isHealthy('nats'),
+    ]);
   }
 
   @Get('metrics')

@@ -8,6 +8,7 @@ import { TtkEventsWorker } from './events/ttk-events-worker.service';
 import { NatsClientModule } from 'libs/nats/nats.module';
 import { LoggerModule } from 'libs/logger/logger.module';
 import configuration from 'libs/config/configuration';
+import { MetricsModule } from 'libs/metrics/metrics.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import configuration from 'libs/config/configuration';
     PrismaClientModule,
     NatsClientModule,
     LoggerModule,
+    MetricsModule,
   ],
   controllers: [TtkCollectorController],
   providers: [TtkCollectorService, TtkEventsWorker],

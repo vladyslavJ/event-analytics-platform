@@ -7,6 +7,8 @@ import { EventsModule } from './events/events.module';
 import { APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { NatsClientModule } from 'libs/nats/nats.module';
+//import { GatewayMetricsService } from 'libs/metrics/services/gateway-metrics.service';
+import { MetricsModule } from 'libs/metrics/metrics.module';
 
 @Module({
   imports: [
@@ -15,6 +17,7 @@ import { NatsClientModule } from 'libs/nats/nats.module';
     HttpModule,
     EventsModule,
     NatsClientModule,
+    MetricsModule,
   ],
   controllers: [HealthController],
   providers: [

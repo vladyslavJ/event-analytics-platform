@@ -51,6 +51,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/gateway/Dockerfile
+    init: true
     ports:
       - '3000:3000'
     environment:
@@ -72,6 +73,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/fb-collector/Dockerfile
+    init: true
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - NATS_URL=nats://nats:4222
@@ -91,6 +93,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/ttk-collector/Dockerfile
+    init: true
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - NATS_URL=nats://nats:4222
@@ -110,8 +113,9 @@ services:
     build:
       context: .
       dockerfile: ./apps/reporter/Dockerfile
+    init: true
     ports:
-      - "3001:3001"
+      - '3001:3001'
     environment:
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
@@ -152,6 +156,8 @@ services:
       - '4000:3000'
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/grafana/dashboards
     networks:
       - services_network
 

@@ -7,7 +7,9 @@ import { FbCollectorService } from './fb-collector.service';
 import { FbEventsWorker } from './events/fb-events-worker.service';
 import { NatsClientModule } from 'libs/nats/nats.module';
 import { LoggerModule } from 'libs/logger/logger.module';
+import { FbHealthController } from './health/health.controller';
 import configuration from 'libs/config/configuration';
+import { MetricsModule } from 'libs/metrics/metrics.module';
 
 @Module({
   imports: [
@@ -19,8 +21,9 @@ import configuration from 'libs/config/configuration';
     PrismaClientModule,
     NatsClientModule,
     LoggerModule,
+    MetricsModule
   ],
-  controllers: [FbCollectorController],
+  controllers: [FbCollectorController, FbHealthController],
   providers: [FbCollectorService, FbEventsWorker],
 })
 export class FbCollectorModule {}

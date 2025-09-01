@@ -22,8 +22,4 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/libs/prisma-client ./libs/prisma-client
 COPY package*.json ./
 
-RUN apk add --no-cache tini
-
-ENTRYPOINT ["/sbin/tini", "--"]
-
 CMD ["npx", "prisma", "migrate", "deploy"]

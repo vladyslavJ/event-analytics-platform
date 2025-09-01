@@ -29,8 +29,4 @@ COPY --from=builder /usr/src/app/package*.json ./
 
 RUN npm install --omit=dev
 
-RUN apk add --no-cache tini
-
-ENTRYPOINT ["/sbin/tini", "--"]
-
 CMD ["node", "dist/apps/fb-collector/main.js"]
