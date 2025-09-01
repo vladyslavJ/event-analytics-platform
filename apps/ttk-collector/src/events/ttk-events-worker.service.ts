@@ -1,27 +1,27 @@
 import { Inject, Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { JSONCodec, Subscription, AckPolicy } from 'nats';
+import { JSONCodec, AckPolicy } from 'nats';
 import type { JetStreamClient, NatsConnection, Consumer } from 'nats';
 import { NatsDiTokens } from 'libs/nats/di/nats-di-tokens';
-import { FbCollectorService } from '../fb-collector.service';
+import { TtkCollectorService } from '../ttk-collector.service';
 import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
 import type { LoggerInterface } from 'libs/logger/interfaces/logger.interface';
-import { FacebookEventInterface } from 'libs/common/interfaces/facebook-event.interface';
+import { TiktokEventInterface } from 'libs/common/interfaces/tiktok-event.interface';
 import { NATS_CONSTANTS } from 'libs/common/constants/nats.const';
 import { EVENT_CONSUMERS } from 'libs/common/constants/event-consumers.const';
 
 @Injectable()
-export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
+export class TtkEventsWorker implements OnModuleInit, OnModuleDestroy {
   private readonly jsonCodec = JSONCodec();
   private isShuttingDown = false;
 
   constructor(
     @Inject(NatsDiTokens.JETSTREAM_CLIENT) private readonly jetstream: JetStreamClient,
     @Inject(NatsDiTokens.NATS_CONNECTION) private readonly natsConnection: NatsConnection,
-    private readonly collectorService: FbCollectorService,
+    private readonly collectorService: TtkCollectorService,
     @Inject(LoggerDiTokens.LOGGER)
     private readonly logger: LoggerInterface,
   ) {
-    this.logger.setContext(FbEventsWorker.name);
+    this.logger.setContext(TtkEventsWorker.name);
   }
 
   async onModuleInit() {
@@ -38,7 +38,7 @@ export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
 
   private async startProcessing() {
     const streamName = NATS_CONSTANTS.STREAM_NAME;
-    const consumerName = EVENT_CONSUMERS.FACEBOOK;
+    const consumerName = EVENT_CONSUMERS.TIKTOK;
 
     const jsm = await this.jetstream.jetstreamManager();
 
@@ -50,7 +50,7 @@ export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
         await jsm.consumers.add(streamName, {
           durable_name: consumerName,
           ack_policy: AckPolicy.Explicit,
-          filter_subject: NATS_CONSTANTS.SUBJECTS.FACEBOOK,
+          filter_subject: NATS_CONSTANTS.SUBJECTS.TIKTOK,
         });
       } else {
         throw err;
@@ -63,13 +63,13 @@ export class FbEventsWorker implements OnModuleInit, OnModuleDestroy {
       try {
         const messages = await consumer.fetch({ max_messages: 10, expires: 5000 });
         for await (const msg of messages) {
-          const eventData = this.jsonCodec.decode(msg.data) as FacebookEventInterface & {
+          const eventData = this.jsonCodec.decode(msg.data) as TiktokEventInterface & {
             correlationId: string;
           };
           this.logger.info(`Received event ${eventData.eventId}`);
 
           try {
-            await this.collectorService.processFacebookEvent(eventData, eventData.correlationId);
+            await this.collectorService.processTiktokEvent(eventData, eventData.correlationId);
             await msg.ack();
           } catch (processingError) {
             this.logger.error(

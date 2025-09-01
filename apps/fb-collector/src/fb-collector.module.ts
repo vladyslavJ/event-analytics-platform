@@ -6,7 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { FbCollectorService } from './fb-collector.service';
 import { FbEventsWorker } from './events/fb-events-worker.service';
 import { NatsClientModule } from 'libs/nats/nats.module';
-import { LoggerModule } from 'libs/logger/logger.module'
+import { LoggerModule } from 'libs/logger/logger.module';
 import configuration from 'libs/config/configuration';
 
 @Module({
