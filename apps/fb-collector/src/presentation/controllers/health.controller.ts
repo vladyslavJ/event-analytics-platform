@@ -9,7 +9,7 @@ import { register, collectDefaultMetrics } from 'prom-client';
 collectDefaultMetrics({ prefix: 'fb_collector_' });
 
 @Controller('health')
-export class FbHealthController {
+export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
     private readonly prismaHealth: PrismaHealthIndicator,
@@ -21,22 +21,22 @@ export class FbHealthController {
 
   @Get('live')
   @HealthCheck()
-  live() {
+  checkLiveness() {
     return this.health.check([]);
   }
 
   @Get('ready')
   @HealthCheck()
-  ready() {
+  checkReadiness() {
     return this.health.check([
-      () => this.prismaHealth.pingCheck('database', this.prisma),
+      () => this.prismaHealth.pingCheck('database', this.prisma as any),
       () => this.natsHealth.isHealthy('nats'),
     ]);
   }
 
   @Get('metrics')
   @Header('Content-Type', register.contentType)
-  async metrics() {
+  async getMetrics(): Promise<string> {
     return register.metrics();
   }
 }

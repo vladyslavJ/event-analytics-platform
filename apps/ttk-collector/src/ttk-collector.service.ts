@@ -26,6 +26,16 @@ export class TtkCollectorService {
 
     try {
       await this.prismaClient.$transaction(async tx => {
+        // Check if event already exists to ensure idempotency
+        const existingEvent = await tx.event.findUnique({
+          where: { eventId },
+        });
+
+        if (existingEvent) {
+          this.logger.info(`[${correlationId}] Event ${eventId} already exists, skipping.`);
+          return;
+        }
+
         const dbUser = await tx.user.upsert({
           where: { source_sourceUserId: { source: source, sourceUserId: user.userId } },
           update: {
@@ -55,9 +65,9 @@ export class TtkCollectorService {
                 videoId: 'videoId' in engagement ? engagement.videoId : null,
                 purchaseAmount:
                   'purchaseAmount' in engagement && engagement.purchaseAmount
-                    ? new Prisma.Decimal(engagement.purchaseAmount)
+                    ? parseFloat(engagement.purchaseAmount)
                     : null,
-                details: engagement as unknown as Prisma.JsonObject,
+                details: engagement as any,
               },
             },
           },
