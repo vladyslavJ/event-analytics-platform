@@ -6,11 +6,11 @@ import { NatsClientModule } from 'libs/nats/nats.module';
 import { LoggerModule } from 'libs/logger/logger.module';
 import { MetricsModule } from 'libs/metrics/metrics.module';
 import { HealthController } from './presentation/controllers/health.controller';
-import { FacebookMessageConsumer, FACEBOOK_EVENT_PROCESSOR_TOKEN } from './application/consumers/facebook-message.consumer';
-import { FacebookEventProcessor, FB_EVENT_REPOSITORY_TOKEN, FB_USER_REPOSITORY_TOKEN } from './domain/services/facebook-event-processor.service';
+import { FacebookMessageConsumer } from './application/consumers/facebook-message.consumer';
+import { FacebookEventProcessor } from './domain/services/facebook-event-processor.service';
 import { EventRepository } from './infrastructure/repositories/event.repository';
 import { UserRepository } from './infrastructure/repositories/user.repository';
-
+import { FbCollectorDiTokens } from './infrastructure/di/fb-events-di-tokens';
 import configuration from 'libs/config/configuration';
 
 @Module({
@@ -28,15 +28,15 @@ import configuration from 'libs/config/configuration';
   controllers: [HealthController],
   providers: [
     {
-      provide: FB_EVENT_REPOSITORY_TOKEN,
+      provide: FbCollectorDiTokens.FB_EVENT_REPOSITORY,
       useClass: EventRepository,
     },
     {
-      provide: FB_USER_REPOSITORY_TOKEN,
+      provide: FbCollectorDiTokens.FB_USER_REPOSITORY,
       useClass: UserRepository,
     },
     {
-      provide: FACEBOOK_EVENT_PROCESSOR_TOKEN,
+      provide: FbCollectorDiTokens.FACEBOOK_EVENT_PROCESSOR,
       useClass: FacebookEventProcessor,
     },
     FacebookMessageConsumer,

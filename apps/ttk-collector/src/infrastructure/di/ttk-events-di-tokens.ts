@@ -1,0 +1,5 @@
+export const TtkCollectorDiTokens = {
+  TTK_EVENT_PROCESSOR: Symbol.for('TTK_EVENT_PROCESSOR'),
+  TTK_EVENT_REPOSITORY: Symbol.for('TTK_EVENT_REPOSITORY'),
+  TTK_USER_REPOSITORY: Symbol.for('TTK_USER_REPOSITORY'),
+};

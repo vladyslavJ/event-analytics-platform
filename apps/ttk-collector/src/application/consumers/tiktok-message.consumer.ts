@@ -10,8 +10,7 @@ import { NATS_CONSTANTS } from 'libs/common/constants/nats.const';
 import { EVENT_CONSUMERS } from 'libs/common/constants/event-consumers.const';
 import { MetricsDiTokens } from 'libs/metrics/di/metrics-di-tokens';
 import type { CollectorsMetricsServiceInterface } from 'libs/metrics/interfaces/collector-metrics-service.interface';
-
-export const TIKTOK_EVENT_PROCESSOR_TOKEN = Symbol('TIKTOK_EVENT_PROCESSOR');
+import { TtkCollectorDiTokens } from '../../infrastructure/di/ttk-events-di-tokens';
 
 @Injectable()
 export class TiktokMessageConsumer implements OnModuleInit, OnModuleDestroy {
@@ -23,7 +22,7 @@ export class TiktokMessageConsumer implements OnModuleInit, OnModuleDestroy {
     private readonly jetstream: JetStreamClient,
     @Inject(NatsDiTokens.NATS_CONNECTION)
     private readonly natsConnection: NatsConnection,
-    @Inject(TIKTOK_EVENT_PROCESSOR_TOKEN)
+    @Inject(TtkCollectorDiTokens.TTK_EVENT_PROCESSOR)
     private readonly eventProcessor: EventProcessorInterface,
     @Inject(MetricsDiTokens.COLLECTORS_METRICS_SERVICE)
     private readonly metricsService: CollectorsMetricsServiceInterface,

@@ -7,16 +7,14 @@ import type {
 } from '../interfaces/repository.interface';
 import type { LoggerInterface } from 'libs/logger/interfaces/logger.interface';
 import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
-
-export const TTK_EVENT_REPOSITORY_TOKEN = Symbol('TTK_EVENT_REPOSITORY');
-export const TTK_USER_REPOSITORY_TOKEN = Symbol('TTK_USER_REPOSITORY');
+import { TtkCollectorDiTokens } from '../../infrastructure/di/ttk-events-di-tokens';
 
 @Injectable()
 export class TiktokEventProcessor implements EventProcessorInterface {
   constructor(
-    @Inject(TTK_EVENT_REPOSITORY_TOKEN)
+    @Inject(TtkCollectorDiTokens.TTK_EVENT_REPOSITORY)
     private readonly eventRepository: EventRepositoryInterface,
-    @Inject(TTK_USER_REPOSITORY_TOKEN)
+    @Inject(TtkCollectorDiTokens.TTK_USER_REPOSITORY)
     private readonly userRepository: UserRepositoryInterface,
     @Inject(LoggerDiTokens.LOGGER)
     private readonly logger: LoggerInterface,

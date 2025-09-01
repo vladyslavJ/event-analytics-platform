@@ -10,8 +10,7 @@ import { NATS_CONSTANTS } from 'libs/common/constants/nats.const';
 import { EVENT_CONSUMERS } from 'libs/common/constants/event-consumers.const';
 import { MetricsDiTokens } from 'libs/metrics/di/metrics-di-tokens';
 import type { CollectorsMetricsServiceInterface } from 'libs/metrics/interfaces/collector-metrics-service.interface';
-
-export const FACEBOOK_EVENT_PROCESSOR_TOKEN = Symbol('FACEBOOK_EVENT_PROCESSOR');
+import { FbCollectorDiTokens } from '../../infrastructure/di/fb-events-di-tokens';
 
 @Injectable()
 export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
@@ -23,7 +22,7 @@ export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
     private readonly jetstream: JetStreamClient,
     @Inject(NatsDiTokens.NATS_CONNECTION)
     private readonly natsConnection: NatsConnection,
-    @Inject(FACEBOOK_EVENT_PROCESSOR_TOKEN)
+    @Inject(FbCollectorDiTokens.FACEBOOK_EVENT_PROCESSOR)
     private readonly eventProcessor: EventProcessorInterface,
     @Inject(MetricsDiTokens.COLLECTORS_METRICS_SERVICE)
     private readonly metricsService: CollectorsMetricsServiceInterface,

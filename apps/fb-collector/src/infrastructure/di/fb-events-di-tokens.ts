@@ -1,0 +1,5 @@
+export const FbCollectorDiTokens = {
+  FACEBOOK_EVENT_PROCESSOR: Symbol.for('FACEBOOK_EVENT_PROCESSOR'),
+  FB_EVENT_REPOSITORY: Symbol.for('FB_EVENT_REPOSITORY'),
+  FB_USER_REPOSITORY: Symbol.for('FB_USER_REPOSITORY'),
+};

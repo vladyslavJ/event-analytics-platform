@@ -16,10 +16,10 @@ async function bootstrap() {
   const port = configService.getOrThrow<number>('fbCollector.port');
 
   await app.listen(port);
-  logger.info(`FB Collector started on port: ${port}`);
+  logger.info(`Started on port: ${port}`);
 }
 
 bootstrap().catch(err => {
-  console.error('Failed to start FB Collector:', err);
+  console.error('Failed to start:', err);
   process.exit(1);
 });

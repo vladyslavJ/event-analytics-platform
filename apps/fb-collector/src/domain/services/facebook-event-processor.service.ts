@@ -7,16 +7,14 @@ import type {
 } from '../interfaces/repository.interface';
 import type { LoggerInterface } from 'libs/logger/interfaces/logger.interface';
 import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
-
-export const FB_EVENT_REPOSITORY_TOKEN = Symbol('FB_EVENT_REPOSITORY');
-export const FB_USER_REPOSITORY_TOKEN = Symbol('FB_USER_REPOSITORY');
+import { FbCollectorDiTokens } from '../../infrastructure/di/fb-events-di-tokens';
 
 @Injectable()
 export class FacebookEventProcessor implements EventProcessorInterface {
   constructor(
-    @Inject(FB_EVENT_REPOSITORY_TOKEN)
+    @Inject(FbCollectorDiTokens.FB_EVENT_REPOSITORY)
     private readonly eventRepository: EventRepositoryInterface,
-    @Inject(FB_USER_REPOSITORY_TOKEN)
+    @Inject(FbCollectorDiTokens.FB_USER_REPOSITORY)
     private readonly userRepository: UserRepositoryInterface,
     @Inject(LoggerDiTokens.LOGGER)
     private readonly logger: LoggerInterface,

@@ -1,33 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
-
-// Infrastructure
 import { PrismaClientModule } from 'libs/prisma-client/src/prisma-client.module';
 import { NatsClientModule } from 'libs/nats/nats.module';
 import { LoggerModule } from 'libs/logger/logger.module';
 import { MetricsModule } from 'libs/metrics/metrics.module';
-
-// Presentation
 import { HealthController } from './presentation/controllers/health.controller';
-
-// Application
-import {
-  TiktokMessageConsumer,
-  TIKTOK_EVENT_PROCESSOR_TOKEN,
-} from './application/consumers/tiktok-message.consumer';
-
-// Domain
-import {
-  TiktokEventProcessor,
-  TTK_EVENT_REPOSITORY_TOKEN,
-  TTK_USER_REPOSITORY_TOKEN,
-} from './domain/services/tiktok-event-processor.service';
-
-// Infrastructure
+import { TiktokMessageConsumer } from './application/consumers/tiktok-message.consumer';
+import { TiktokEventProcessor } from './domain/services/tiktok-event-processor.service';
 import { EventRepository } from './infrastructure/repositories/event.repository';
 import { UserRepository } from './infrastructure/repositories/user.repository';
-
+import { TtkCollectorDiTokens } from './infrastructure/di/ttk-events-di-tokens';
 import configuration from 'libs/config/configuration';
 
 @Module({
@@ -44,21 +27,18 @@ import configuration from 'libs/config/configuration';
   ],
   controllers: [HealthController],
   providers: [
-    // Repositories
     {
-      provide: TTK_EVENT_REPOSITORY_TOKEN,
+      provide: TtkCollectorDiTokens.TTK_EVENT_REPOSITORY,
       useClass: EventRepository,
     },
     {
-      provide: TTK_USER_REPOSITORY_TOKEN,
+      provide: TtkCollectorDiTokens.TTK_USER_REPOSITORY,
       useClass: UserRepository,
     },
-    // Services
     {
-      provide: TIKTOK_EVENT_PROCESSOR_TOKEN,
+      provide: TtkCollectorDiTokens.TTK_EVENT_PROCESSOR,
       useClass: TiktokEventProcessor,
     },
-    // Consumers
     TiktokMessageConsumer,
   ],
 })
