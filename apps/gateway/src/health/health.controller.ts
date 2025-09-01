@@ -1,5 +1,7 @@
-import { Controller, Get, Header } from '@nestjs/common';
-import { HealthCheck, HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus';
+import { Inject, Controller, Get, Header } from '@nestjs/common';
+import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
+import { NatsDiTokens } from 'libs/nats/di/nats-di-tokens';
+import type { NatsHealthIndicatorInterface } from 'libs/nats/interfaces/nats-health-indicator.interface';
 import { register, collectDefaultMetrics } from 'prom-client';
 
 collectDefaultMetrics();
@@ -8,7 +10,8 @@ collectDefaultMetrics();
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private http: HttpHealthIndicator,
+    @Inject(NatsDiTokens.NATS_HEALTH_INDICATOR)
+    private natsHealth: NatsHealthIndicatorInterface,
   ) {}
 
   @Get('live')
@@ -20,10 +23,10 @@ export class HealthController {
   @Get('ready')
   @HealthCheck()
   ready() {
-    return this.health.check([() => this.http.pingCheck('nestjs-docs', 'https://docs.nestjs.com')]);
+    return this.health.check([() => this.natsHealth.isHealthy('nats')]);
   }
 
-  @Get('/metrics')
+  @Get('metrics')
   @Header('Content-Type', register.contentType)
   async metrics(): Promise<string> {
     return register.metrics();

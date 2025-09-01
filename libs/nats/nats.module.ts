@@ -1,20 +1,21 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { connect, NatsConnection, JetStreamClient } from 'nats';
-import { NatsDiTokens } from 'libs/common/di/nats-di-tokens';
-import configuration from './config/configuration';
+import { NatsDiTokens } from 'libs/nats/di/nats-di-tokens';
+import configuration from '../config/configuration';
+import { LoggerModule } from 'libs/logger/logger.module';
+import { NatsHealthIndicator } from './health/nats-health-indicator.service';
 
 @Global()
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, load: [configuration] })],
+  imports: [ConfigModule.forRoot({ isGlobal: true, load: [configuration] }), LoggerModule],
   providers: [
     {
       provide: NatsDiTokens.NATS_CONNECTION,
       useFactory: async (configService: ConfigService): Promise<NatsConnection> => {
         const natsConnection = await connect({
-          servers: 'nats://nats:4222',
+          servers: configService.get<string>('nats.url'),
         });
-        console.log(`NATS connected to ${natsConnection.getServer()}`);
         return natsConnection;
       },
       inject: [ConfigService],
@@ -26,7 +27,15 @@ import configuration from './config/configuration';
       },
       inject: [NatsDiTokens.NATS_CONNECTION],
     },
+    {
+      provide: NatsDiTokens.NATS_HEALTH_INDICATOR,
+      useClass: NatsHealthIndicator,
+    },
   ],
-  exports: [NatsDiTokens.NATS_CONNECTION, NatsDiTokens.JETSTREAM_CLIENT],
+  exports: [
+    NatsDiTokens.NATS_CONNECTION,
+    NatsDiTokens.JETSTREAM_CLIENT,
+    NatsDiTokens.NATS_HEALTH_INDICATOR,
+  ],
 })
 export class NatsClientModule {}

@@ -1,24 +1,33 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PrismaClientService } from 'libs/prisma-client/src/prisma-client.service';
 import { FacebookEventInterface } from 'libs/common/interfaces/facebook-event.interface';
 import { Prisma } from '@prisma/client';
+import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
+import { PrismaServiceDiTokens } from 'libs/prisma-client/di/prisma-service-di-tokens';
+import type { LoggerInterface } from 'libs/logger/interfaces/logger.interface';
 
 @Injectable()
 export class FbCollectorService {
-  private readonly logger = new Logger(FbCollectorService.name);
-
-  constructor(private readonly prisma: PrismaClientService) {}
+  constructor(
+    @Inject(PrismaServiceDiTokens.PRISMA_CLIENT)
+    private readonly prismaClient: PrismaClientService,
+    @Inject(LoggerDiTokens.LOGGER)
+    private readonly logger: LoggerInterface,
+  ) {
+    this.logger.setContext(FbCollectorService.name);
+  }
 
   async processFacebookEvent(event: FacebookEventInterface, correlationId: string): Promise<void> {
-    this.logger.log(`[${correlationId}] Processing event ${event.eventId} from Facebook...`);
+    this.logger.info(`[${correlationId}] Processing event ${event.eventId} from Facebook...`);
 
     const { eventId, timestamp, funnelStage, eventType, data } = event;
     const { user, engagement } = data;
+    const source = 'facebook';
 
     try {
-      await this.prisma.$transaction(async tx => {
+      await this.prismaClient.$transaction(async tx => {
         const dbUser = await tx.user.upsert({
-          where: { source_sourceUserId: { source: 'facebook', sourceUserId: user.userId } },
+          where: { source_sourceUserId: { source: source, sourceUserId: user.userId } },
           update: {
             name: user.name,
             age: user.age,
@@ -27,7 +36,7 @@ export class FbCollectorService {
             city: user.location.city,
           },
           create: {
-            source: 'facebook',
+            source: source,
             sourceUserId: user.userId,
             name: user.name,
             age: user.age,
@@ -42,7 +51,7 @@ export class FbCollectorService {
           data: {
             eventId,
             timestamp: new Date(timestamp),
-            source: 'facebook',
+            source: source,
             funnelStage,
             eventType,
             userId: dbUser.id,
@@ -62,7 +71,7 @@ export class FbCollectorService {
           },
         });
       });
-      this.logger.log(`[${correlationId}] Successfully saved event ${eventId}.`);
+      this.logger.info(`[${correlationId}] Successfully saved event ${eventId}.`);
     } catch (error) {
       this.logger.error(
         `[${correlationId}] Failed to save event ${eventId}. Error: ${error.message}`,

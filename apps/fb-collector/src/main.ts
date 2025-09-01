@@ -1,15 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { FbCollectorModule } from './fb-collector.module';
 import { ConfigService } from '@nestjs/config';
+import { LoggerInterface } from 'libs/logger/interfaces/logger.interface';
+import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
 
 async function bootstrap() {
   const app = await NestFactory.create(FbCollectorModule);
+
+  const logger = await app.resolve<LoggerInterface>(LoggerDiTokens.LOGGER);
+  logger.setContext('FB-COLLECTOR');
+
   app.enableShutdownHooks();
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('fbCollectorPort');
-
-  await app.listen(process.env.port ?? 3010);
-  console.log(`FB-Collector is running on port: ${port}`);
+  const port = configService.getOrThrow<number>('fbCollector.port');
+  await app.listen(port);
+  logger.info(`Started on port: ${port}`);
 }
 bootstrap();
