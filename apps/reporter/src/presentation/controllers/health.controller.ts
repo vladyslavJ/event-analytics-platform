@@ -1,6 +1,6 @@
 import { Inject, Controller, Get, Header } from '@nestjs/common';
 import { HealthCheck, HealthCheckService, PrismaHealthIndicator } from '@nestjs/terminus';
-import { register, collectDefaultMetrics } from 'prom-client'; // --- ДОДАНО
+import { register, collectDefaultMetrics } from 'prom-client';
 import { PrismaClientService } from 'libs/prisma-client/src/prisma-client.service';
 import { PrismaServiceDiTokens } from 'libs/prisma-client/di/prisma-service-di-tokens';
 
@@ -24,7 +24,7 @@ export class HealthController {
   @Get('ready')
   @HealthCheck()
   ready() {
-    return this.health.check([() => this.prismaHealth.pingCheck('database', this.prisma)]);
+    return this.health.check([() => this.prismaHealth.pingCheck('database', this.prisma as any)]);
   }
 
   @Get('metrics')

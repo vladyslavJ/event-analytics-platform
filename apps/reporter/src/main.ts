@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { ReporterModule } from './reporter.module';
+import { ReporterRefactoredModule } from './reporter-refactored.module';
 import { LoggerInterface } from 'libs/logger/interfaces/logger.interface';
 import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
 
 async function bootstrap() {
-  const app = await NestFactory.create(ReporterModule);
+  const app = await NestFactory.create(ReporterRefactoredModule);
 
   const logger = await app.resolve<LoggerInterface>(LoggerDiTokens.LOGGER);
   logger.setContext('REPORTER');

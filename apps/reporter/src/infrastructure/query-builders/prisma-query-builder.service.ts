@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma, Source } from '@prisma/client';
-import { ReportsQueryBuilderInterface } from './interfaces/reports-query-builder.interface';
-import { GetEventsReportDto } from './dto/get-events-report.dto';
-import { GetRevenueReportDto } from './dto/get-revenue-report.dto';
-import { GetDemographicsReportDto } from './dto/get-demographics-report.dto';
+import { Injectable, Inject } from '@nestjs/common';
+import { EventSource } from 'libs/common/enums/event-source.enum';
+import { QueryBuilderInterface } from '../../domain/interfaces/query-builder.interface';
+import { GetEventsReportDto } from '../../dto/get-events-report.dto';
+import { GetRevenueReportDto } from '../../dto/get-revenue-report.dto';
+import { GetDemographicsReportDto } from '../../dto/get-demographics-report.dto';
 import { FacebookBottomEvent } from 'libs/common/enums/facebook-event.enum';
 import { TiktokBottomEvent } from 'libs/common/enums/tiktok-event.enum';
 
 @Injectable()
-export class ReportsQueryBuilder implements ReportsQueryBuilderInterface {
-  buildEventsReportQuery(filters: GetEventsReportDto): Prisma.EventGroupByArgs {
-    const where: Prisma.EventWhereInput = {
+export class PrismaQueryBuilder implements QueryBuilderInterface {
+  buildEventsReportQuery(filters: GetEventsReportDto): any {
+    const where: any = {
       timestamp: {
         gte: filters.from,
         lte: filters.to,
@@ -29,8 +29,8 @@ export class ReportsQueryBuilder implements ReportsQueryBuilderInterface {
     };
   }
 
-  buildRevenueReportQuery(filters: GetRevenueReportDto): Prisma.EventFindManyArgs {
-    const where: Prisma.EventWhereInput = {
+  buildRevenueReportQuery(filters: GetRevenueReportDto): any {
+    const where: any = {
       timestamp: {
         gte: filters.from,
         lte: filters.to,
@@ -42,7 +42,6 @@ export class ReportsQueryBuilder implements ReportsQueryBuilderInterface {
       ],
       engagement: {
         campaignId: filters.campaignId,
-        // ВИПРАВЛЕНО: Фільтруємо по полю purchaseAmount, а не по JSON
         purchaseAmount: {
           not: null,
         },
@@ -56,7 +55,6 @@ export class ReportsQueryBuilder implements ReportsQueryBuilderInterface {
         engagement: {
           select: {
             campaignId: true,
-            // ВИПРАВЛЕНО: Вибираємо поле purchaseAmount напряму
             purchaseAmount: true,
           },
         },
@@ -64,8 +62,8 @@ export class ReportsQueryBuilder implements ReportsQueryBuilderInterface {
     };
   }
 
-  buildDemographicsReportQuery(filters: GetDemographicsReportDto): Prisma.UserFindManyArgs {
-    const where: Prisma.UserWhereInput = {
+  buildDemographicsReportQuery(filters: GetDemographicsReportDto): any {
+    const where: any = {
       source: filters.source,
       events: {
         some: {
@@ -77,7 +75,7 @@ export class ReportsQueryBuilder implements ReportsQueryBuilderInterface {
       },
     };
 
-    const facebookSelect: Prisma.UserSelect = {
+    const facebookSelect = {
       sourceUserId: true,
       name: true,
       age: true,
@@ -86,7 +84,7 @@ export class ReportsQueryBuilder implements ReportsQueryBuilderInterface {
       city: true,
     };
 
-    const tiktokSelect: Prisma.UserSelect = {
+    const tiktokSelect = {
       sourceUserId: true,
       name: true,
       followers: true,
@@ -94,7 +92,7 @@ export class ReportsQueryBuilder implements ReportsQueryBuilderInterface {
 
     return {
       where,
-      select: filters.source === Source.facebook ? facebookSelect : tiktokSelect,
+      select: filters.source === EventSource.Facebook ? facebookSelect : tiktokSelect,
     };
   }
 }
