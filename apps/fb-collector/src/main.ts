@@ -6,15 +6,11 @@ import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
 
 async function bootstrap() {
   const app = await NestFactory.create(FbCollectorModule);
-
   const logger = await app.resolve<LoggerInterface>(LoggerDiTokens.LOGGER);
   logger.setContext('FB-COLLECTOR');
-
   app.enableShutdownHooks();
-
   const configService = app.get(ConfigService);
   const port = configService.getOrThrow<number>('fbCollector.port');
-
   await app.listen(port);
   logger.info(`Started on port: ${port}`);
 }

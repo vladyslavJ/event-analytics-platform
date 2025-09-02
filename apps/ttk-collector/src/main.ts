@@ -6,15 +6,11 @@ import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
 
 async function bootstrap() {
   const app = await NestFactory.create(TtkCollectorModule);
-
   const logger = await app.resolve<LoggerInterface>(LoggerDiTokens.LOGGER);
   logger.setContext('TTK-COLLECTOR');
-
   app.enableShutdownHooks();
-
   const configService = app.get(ConfigService);
   const port = configService.getOrThrow<number>('ttkCollector.port');
-
   await app.listen(port);
   logger.info(`TTK Collector started on port: ${port}`);
 }

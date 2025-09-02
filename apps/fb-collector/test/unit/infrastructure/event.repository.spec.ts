@@ -50,15 +50,12 @@ describe('EventRepository', () => {
 
   describe('saveEvent', () => {
     it('should save a new Facebook top event successfully', async () => {
-      // Arrange
       const userId = 'user_123';
       mockPrisma.event.findUnique.mockResolvedValue(null);
       mockPrisma.event.create.mockResolvedValue(mockPrismaEvent as any);
 
-      // Act
       const result = await repository.saveEvent(mockFacebookTopEvent, userId);
 
-      // Assert
       expect(mockPrisma.event.findUnique).toHaveBeenCalledWith({
         where: { eventId: 'fb_top_123' },
       });
@@ -86,7 +83,6 @@ describe('EventRepository', () => {
     });
 
     it('should save a Facebook bottom event with purchase amount', async () => {
-      // Arrange
       const userId = 'user_456';
       const bottomEventPrismaResult = {
         ...mockPrismaEvent,
@@ -99,10 +95,8 @@ describe('EventRepository', () => {
       mockPrisma.event.findUnique.mockResolvedValue(null);
       mockPrisma.event.create.mockResolvedValue(bottomEventPrismaResult as any);
 
-      // Act
       const result = await repository.saveEvent(mockFacebookBottomEvent, userId);
 
-      // Assert
       expect(mockPrisma.event.create).toHaveBeenCalledWith({
         data: {
           eventId: 'fb_bottom_789',
@@ -127,43 +121,34 @@ describe('EventRepository', () => {
     });
 
     it('should return existing event if it already exists', async () => {
-      // Arrange
       const userId = 'user_123';
       mockPrisma.event.findUnique.mockResolvedValue(mockPrismaEvent as any);
 
-      // Act
       const result = await repository.saveEvent(mockFacebookTopEvent, userId);
 
-      // Assert
       expect(mockPrisma.event.findUnique).toHaveBeenCalled();
       expect(mockPrisma.event.create).not.toHaveBeenCalled();
       expect(result).toEqual(mockSavedEvent);
     });
 
     it('should handle purchase amount extraction correctly', async () => {
-      // Arrange
       const userId = 'user_456';
       mockPrisma.event.findUnique.mockResolvedValue(null);
       mockPrisma.event.create.mockResolvedValue(mockPrismaEvent as any);
 
-      // Act
       await repository.saveEvent(mockFacebookBottomEvent, userId);
 
-      // Assert
       const createCall = mockPrisma.event.create.mock.calls[0][0];
       expect(createCall.data.engagement.create.purchaseAmount).toBe(99.99);
     });
 
     it('should handle engagement data without purchase amount', async () => {
-      // Arrange
       const userId = 'user_123';
       mockPrisma.event.findUnique.mockResolvedValue(null);
       mockPrisma.event.create.mockResolvedValue(mockPrismaEvent as any);
 
-      // Act
       await repository.saveEvent(mockFacebookTopEvent, userId);
 
-      // Assert
       const createCall = mockPrisma.event.create.mock.calls[0][0];
       expect(createCall.data.engagement.create.purchaseAmount).toBeNull();
     });
@@ -171,14 +156,11 @@ describe('EventRepository', () => {
 
   describe('findEventById', () => {
     it('should find event by ID successfully', async () => {
-      // Arrange
       const eventId = 'fb_top_123';
       mockPrisma.event.findUnique.mockResolvedValue(mockPrismaEvent as any);
 
-      // Act
       const result = await repository.findEventById(eventId);
 
-      // Assert
       expect(mockPrisma.event.findUnique).toHaveBeenCalledWith({
         where: { eventId: 'fb_top_123' },
       });
@@ -186,49 +168,40 @@ describe('EventRepository', () => {
     });
 
     it('should return null when event not found', async () => {
-      // Arrange
       const eventId = 'non_existent_event';
       mockPrisma.event.findUnique.mockResolvedValue(null);
 
-      // Act
       const result = await repository.findEventById(eventId);
 
-      // Assert
       expect(result).toBeNull();
     });
 
     it('should handle database errors gracefully', async () => {
-      // Arrange
       const eventId = 'fb_top_123';
       const dbError = new Error('Database connection failed');
       mockPrisma.event.findUnique.mockRejectedValue(dbError);
 
-      // Act & Assert
       await expect(repository.findEventById(eventId)).rejects.toThrow('Database connection failed');
     });
   });
 
   describe('error handling', () => {
     it('should propagate database errors during save', async () => {
-      // Arrange
       const userId = 'user_123';
       const dbError = new Error('Database write failed');
       mockPrisma.event.findUnique.mockResolvedValue(null);
       mockPrisma.event.create.mockRejectedValue(dbError);
 
-      // Act & Assert
       await expect(repository.saveEvent(mockFacebookTopEvent, userId)).rejects.toThrow(
         'Database write failed',
       );
     });
 
     it('should handle findUnique errors during save', async () => {
-      // Arrange
       const userId = 'user_123';
       const dbError = new Error('Database read failed');
       mockPrisma.event.findUnique.mockRejectedValue(dbError);
 
-      // Act & Assert
       await expect(repository.saveEvent(mockFacebookTopEvent, userId)).rejects.toThrow(
         'Database read failed',
       );

@@ -24,17 +24,14 @@ export class EventProcessor implements EventProcessorInterface {
 
   async processEvents(events: Record<string, unknown>[]): Promise<ProcessingResult> {
     this.logger.info(`Processing ${events.length} events`);
-
     const validationResult = this.validator.validateEvents(events);
     this.logger.info(
       `Validated: ${validationResult.validEvents.length} valid, ${validationResult.invalidCount} invalid`,
     );
-
     const publishResult = await this.publisher.publishEvents(validationResult.validEvents);
     this.logger.info(
       `Published: ${publishResult.publishedCount} successful, ${publishResult.failedCount} failed`,
     );
-
     return {
       message: 'Events are being processed.',
       accepted: validationResult.validEvents.length,

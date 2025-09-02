@@ -22,7 +22,6 @@ export class NatsPublisherService implements OnModuleInit {
   async onModuleInit() {
     const streamName = NATS_CONSTANTS.STREAM_NAME;
     const subjects = NATS_CONSTANTS.SUBJECTS.ALL;
-
     const streamManager = await this.jetstream.jetstreamManager();
     try {
       await streamManager.streams.info(streamName);
@@ -37,26 +36,19 @@ export class NatsPublisherService implements OnModuleInit {
   async publishEvent(event: ValidEvent & { correlationId: string }): Promise<void> {
     const subject = `events.${event.source}`;
     const payload = this.jsonCodec.encode(event);
-
-    // Retry логіка з експоненціальним backoff
     const maxRetries = 3;
     let attempt = 0;
-
     while (attempt < maxRetries) {
       try {
         this.logger.debug(
           `Publishing event ${event.eventId} (attempt ${attempt + 1}/${maxRetries}) to subject: ${subject}`,
         );
-
-        // Публікація з таймаутом та підтвердженням доставки
         await this.jetstream.publish(subject, payload, {
-          timeout: 10000, // 10 секунд таймаут
+          timeout: 10000,
           expect: {
-            lastSequence: undefined, // Не перевіряємо послідовність
+            lastSequence: undefined,
           },
         });
-
-        // Успішна публікація
         this.logger.debug(`Successfully published event ${event.eventId}`);
         return;
       } catch (error) {
@@ -64,13 +56,10 @@ export class NatsPublisherService implements OnModuleInit {
         this.logger.warn(
           `Failed to publish event ${event.eventId} (attempt ${attempt}/${maxRetries}): ${error.message}`,
         );
-
         if (attempt >= maxRetries) {
           this.logger.error(`Max retries exceeded for event ${event.eventId}: ${error.message}`);
           throw error;
         }
-
-        // Експоненціальний backoff: 100ms, 200ms, 400ms
         const delay = 100 * Math.pow(2, attempt - 1);
         await this.sleep(delay);
       }

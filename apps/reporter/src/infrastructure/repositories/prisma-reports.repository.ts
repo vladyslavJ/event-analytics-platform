@@ -30,10 +30,8 @@ export class PrismaReportsRepository implements ReportsRepositoryInterface {
 
   async getEventsReport(filters: GetEventsReportDto): Promise<EventsReportResult[]> {
     const queryArgs = this.queryBuilder.buildEventsReportQuery(filters);
-
     try {
       const result = await this.prisma.event.groupBy(queryArgs);
-
       return result.map(group => ({
         source: group.source,
         funnelStage: group.funnelStage,
@@ -48,19 +46,14 @@ export class PrismaReportsRepository implements ReportsRepositoryInterface {
 
   async getRevenueReport(filters: GetRevenueReportDto): Promise<RevenueReportResult> {
     const queryArgs = this.queryBuilder.buildRevenueReportQuery(filters);
-
     try {
       const events = (await this.prisma.event.findMany(queryArgs)) as any[];
-
       const revenueByCampaign: Record<string, number> = {};
       let totalRevenue = 0;
-
       for (const event of events) {
         if (!event.engagement || !event.engagement.purchaseAmount) continue;
-
         const amount = Number(event.engagement.purchaseAmount);
         totalRevenue += amount;
-
         if (event.engagement.campaignId) {
           const campaignId = event.engagement.campaignId;
           revenueByCampaign[campaignId] = (revenueByCampaign[campaignId] || 0) + amount;
@@ -84,10 +77,8 @@ export class PrismaReportsRepository implements ReportsRepositoryInterface {
     filters: GetDemographicsReportDto,
   ): Promise<DemographicsReportResult[]> {
     const queryArgs = this.queryBuilder.buildDemographicsReportQuery(filters);
-
     try {
       const users = await this.prisma.user.findMany(queryArgs);
-
       return users.map(user => ({
         sourceUserId: user.sourceUserId,
         name: user.name || undefined,

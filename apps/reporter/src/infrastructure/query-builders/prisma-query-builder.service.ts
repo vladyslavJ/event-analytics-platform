@@ -19,7 +19,7 @@ export class PrismaQueryBuilder implements QueryBuilderInterface {
       funnelStage: filters.funnelStage,
       eventType: filters.eventType,
     };
-
+    
     return {
       by: ['source', 'funnelStage', 'eventType'],
       _count: {

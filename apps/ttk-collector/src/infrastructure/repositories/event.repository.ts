@@ -18,12 +18,9 @@ export class EventRepository implements EventRepositoryInterface {
   async saveEvent(event: TiktokEventInterface, userId: string): Promise<SavedEvent> {
     const mappedEvent = EventMapper.mapFromTiktokEvent(event, userId);
     const { engagement } = event.data;
-
-    // Check if event already exists to ensure idempotency
     const existingEvent = await this.prisma.event.findUnique({
       where: { eventId: mappedEvent.eventId },
     });
-
     if (existingEvent) {
       return {
         id: existingEvent.id,
@@ -73,9 +70,7 @@ export class EventRepository implements EventRepositoryInterface {
     const result = await this.prisma.event.findUnique({
       where: { eventId },
     });
-
     if (!result) return null;
-
     return {
       id: result.id,
       eventId: result.eventId,

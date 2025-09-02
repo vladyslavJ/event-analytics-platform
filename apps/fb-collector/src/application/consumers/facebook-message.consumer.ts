@@ -58,12 +58,10 @@ export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
         return;
       } catch (error) {
         this.logger.warn(`Connection attempt ${attempt} failed: ${error.message}`);
-
         if (attempt === retries) {
           this.logger.error('Failed to connect after all retries');
           throw error;
         }
-
         await this.delay(delay);
       }
     }
@@ -72,9 +70,7 @@ export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
   private async startConsumer(): Promise<void> {
     const streamName = NATS_CONSTANTS.STREAM_NAME;
     const consumerName = EVENT_CONSUMERS.FACEBOOK;
-
     const consumer = await this.ensureConsumer(streamName, consumerName);
-
     while (!this.isShuttingDown) {
       try {
         await this.processMessages(consumer);
@@ -88,7 +84,6 @@ export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
 
   private async ensureConsumer(streamName: string, consumerName: string): Promise<Consumer> {
     const jsm = await this.jetstream.jetstreamManager();
-
     try {
       await jsm.consumers.info(streamName, consumerName);
     } catch (err) {
@@ -103,26 +98,20 @@ export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
         throw err;
       }
     }
-
     return this.jetstream.consumers.get(streamName, consumerName);
   }
 
   private async processMessages(consumer: Consumer): Promise<void> {
     const messages = await consumer.fetch({ max_messages: 10, expires: 5000 });
-
     for await (const msg of messages) {
       this.metricsService.incrementConsumed(CollectorSource.Facebook);
-
       try {
         const eventData = this.jsonCodec.decode(msg.data) as FacebookEventInterface & {
           correlationId: string;
         };
-
         this.logger.debug(`Processing event ${eventData.eventId}`);
-
         await this.eventProcessor.processEvent(eventData, eventData.correlationId);
         await msg.ack();
-
         this.metricsService.incrementProcessed(CollectorSource.Facebook);
       } catch (error) {
         this.metricsService.incrementFailed(CollectorSource.Facebook);

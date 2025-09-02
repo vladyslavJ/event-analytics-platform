@@ -10,7 +10,6 @@ import { FbCollectorDiTokens } from '../../../src/infrastructure/di/fb-events-di
 import { CollectorSource } from 'libs/metrics/types/collector-sources.type';
 import { mockFacebookTopEvent, mockCorrelationId } from '../../fixtures/facebook-events.fixture';
 
-// Mock NATS types
 const mockJetStream = {
   jetstreamManager: jest.fn(),
   consumers: {
@@ -50,10 +49,8 @@ describe('FacebookMessageConsumer', () => {
   let mockLogger: jest.Mocked<LoggerInterface>;
 
   beforeEach(async () => {
-    // Reset all mocks
     jest.clearAllMocks();
 
-    // Create mocked dependencies
     mockEventProcessor = {
       processEvent: jest.fn(),
     };
@@ -72,7 +69,6 @@ describe('FacebookMessageConsumer', () => {
       setContext: jest.fn(),
     };
 
-    // Setup NATS mocks
     mockJetStream.jetstreamManager.mockResolvedValue(mockJetStreamManager);
     mockJetStream.consumers.get.mockResolvedValue(mockConsumer);
     mockJetStreamManager.consumers.info.mockResolvedValue({});
@@ -114,15 +110,12 @@ describe('FacebookMessageConsumer', () => {
 
   describe('processMessages', () => {
     it('should process messages successfully', async () => {
-      // Arrange
       const messages = [mockMessage];
       mockConsumer.fetch.mockResolvedValue(messages as any);
       mockEventProcessor.processEvent.mockResolvedValue();
 
-      // Act
       await (consumer as any).processMessages(mockConsumer);
 
-      // Assert
       expect(mockMetricsService.incrementConsumed).toHaveBeenCalledWith(CollectorSource.Facebook);
       expect(mockEventProcessor.processEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -136,16 +129,13 @@ describe('FacebookMessageConsumer', () => {
     });
 
     it('should handle processing errors gracefully', async () => {
-      // Arrange
       const error = new Error('Processing failed');
       const messages = [mockMessage];
       mockConsumer.fetch.mockResolvedValue(messages as any);
       mockEventProcessor.processEvent.mockRejectedValue(error);
 
-      // Act
       await (consumer as any).processMessages(mockConsumer);
 
-      // Assert
       expect(mockMetricsService.incrementConsumed).toHaveBeenCalledWith(CollectorSource.Facebook);
       expect(mockMetricsService.incrementFailed).toHaveBeenCalledWith(CollectorSource.Facebook);
       expect(mockLogger.error).toHaveBeenCalledWith('Failed to process message', error);
@@ -153,7 +143,6 @@ describe('FacebookMessageConsumer', () => {
     });
 
     it('should handle malformed message data', async () => {
-      // Arrange
       const malformedMessage = {
         data: new TextEncoder().encode('invalid json'),
         ack: jest.fn(),
@@ -161,45 +150,37 @@ describe('FacebookMessageConsumer', () => {
       const messages = [malformedMessage];
       mockConsumer.fetch.mockResolvedValue(messages as any);
 
-      // Act
       await (consumer as any).processMessages(mockConsumer);
 
-      // Assert
       expect(mockMetricsService.incrementConsumed).toHaveBeenCalledWith(CollectorSource.Facebook);
       expect(mockMetricsService.incrementFailed).toHaveBeenCalledWith(CollectorSource.Facebook);
       expect(mockLogger.error).toHaveBeenCalledWith('Failed to process message', expect.any(Error));
     });
 
     it('should process multiple messages in batch', async () => {
-      // Arrange
       const messages = [mockMessage, mockMessage, mockMessage];
       mockConsumer.fetch.mockResolvedValue(messages as any);
       mockEventProcessor.processEvent.mockResolvedValue();
 
-      // Act
       await (consumer as any).processMessages(mockConsumer);
 
-      // Assert
       expect(mockMetricsService.incrementConsumed).toHaveBeenCalledTimes(3);
       expect(mockEventProcessor.processEvent).toHaveBeenCalledTimes(3);
       expect(mockMetricsService.incrementProcessed).toHaveBeenCalledTimes(3);
     });
 
     it('should continue processing other messages when one fails', async () => {
-      // Arrange
       const successMessage = { ...mockMessage, ack: jest.fn() };
       const failMessage = { ...mockMessage, ack: jest.fn() };
       const messages = [successMessage, failMessage];
 
       mockConsumer.fetch.mockResolvedValue(messages as any);
       mockEventProcessor.processEvent
-        .mockResolvedValueOnce() // First message succeeds
-        .mockRejectedValueOnce(new Error('Second message fails')); // Second message fails
+        .mockResolvedValueOnce()
+        .mockRejectedValueOnce(new Error('Second message fails'));
 
-      // Act
       await (consumer as any).processMessages(mockConsumer);
 
-      // Assert
       expect(mockEventProcessor.processEvent).toHaveBeenCalledTimes(2);
       expect(successMessage.ack).toHaveBeenCalled();
       expect(failMessage.ack).not.toHaveBeenCalled();
@@ -210,14 +191,11 @@ describe('FacebookMessageConsumer', () => {
 
   describe('ensureConsumer', () => {
     it('should create consumer when it does not exist', async () => {
-      // Arrange
       const notFoundError = { code: '404' };
       mockJetStreamManager.consumers.info.mockRejectedValue(notFoundError);
 
-      // Act
       await (consumer as any).ensureConsumer('test-stream', 'facebook-consumer');
 
-      // Assert
       expect(mockJetStreamManager.consumers.add).toHaveBeenCalledWith('test-stream', {
         durable_name: 'facebook-consumer',
         ack_policy: expect.any(String),
@@ -227,22 +205,17 @@ describe('FacebookMessageConsumer', () => {
     });
 
     it('should not create consumer when it already exists', async () => {
-      // Arrange
       mockJetStreamManager.consumers.info.mockResolvedValue({});
 
-      // Act
       await (consumer as any).ensureConsumer('test-stream', 'facebook-consumer');
 
-      // Assert
       expect(mockJetStreamManager.consumers.add).not.toHaveBeenCalled();
     });
 
     it('should propagate non-404 errors', async () => {
-      // Arrange
       const serverError = { code: '500', message: 'Internal server error' };
       mockJetStreamManager.consumers.info.mockRejectedValue(serverError);
 
-      // Act & Assert
       await expect(
         (consumer as any).ensureConsumer('test-stream', 'facebook-consumer'),
       ).rejects.toEqual(serverError);
@@ -251,36 +224,29 @@ describe('FacebookMessageConsumer', () => {
 
   describe('module lifecycle', () => {
     it('should handle module destruction gracefully', async () => {
-      // Act
       await consumer.onModuleDestroy();
 
-      // Assert
       expect(mockLogger.info).toHaveBeenCalledWith('Gracefully shutting down message consumer...');
       expect(mockNatsConnection.close).toHaveBeenCalled();
       expect(mockLogger.info).toHaveBeenCalledWith('Message consumer shut down.');
     });
 
     it('should set shutdown flag during destruction', async () => {
-      // Act
       await consumer.onModuleDestroy();
 
-      // Assert
       expect((consumer as any).isShuttingDown).toBe(true);
     });
   });
 
   describe('connection retry logic', () => {
     it('should retry connection on failure', async () => {
-      // Arrange
       const connectSpy = jest.spyOn(consumer as any, 'startConsumer');
       connectSpy
         .mockRejectedValueOnce(new Error('Connection failed'))
         .mockResolvedValueOnce(undefined);
 
-      // Act
       await (consumer as any).connectWithRetry(2, 100);
 
-      // Assert
       expect(connectSpy).toHaveBeenCalledTimes(2);
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'Connection attempt 1 failed: Connection failed',
@@ -291,12 +257,10 @@ describe('FacebookMessageConsumer', () => {
     });
 
     it('should throw error after exhausting retries', async () => {
-      // Arrange
       const error = new Error('Persistent connection failure');
       const connectSpy = jest.spyOn(consumer as any, 'startConsumer');
       connectSpy.mockRejectedValue(error);
 
-      // Act & Assert
       await expect((consumer as any).connectWithRetry(2, 100)).rejects.toThrow(
         'Persistent connection failure',
       );

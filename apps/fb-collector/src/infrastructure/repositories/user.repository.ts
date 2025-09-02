@@ -20,7 +20,6 @@ export class UserRepository implements UserRepositoryInterface {
     source: string,
   ): Promise<SavedUser> {
     const mappedUser = UserMapper.mapFromFacebookEvent(userData, source);
-
     const result = await this.prisma.user.upsert({
       where: {
         source_sourceUserId: {
@@ -46,7 +45,6 @@ export class UserRepository implements UserRepositoryInterface {
         extra: {},
       },
     });
-
     return {
       id: result.id,
       source: result.source,
@@ -68,9 +66,7 @@ export class UserRepository implements UserRepositoryInterface {
         },
       },
     });
-
     if (!result) return null;
-
     return {
       id: result.id,
       source: result.source,

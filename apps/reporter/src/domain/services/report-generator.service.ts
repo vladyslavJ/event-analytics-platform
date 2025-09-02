@@ -26,7 +26,6 @@ export class ReportGenerator implements ReportGeneratorInterface {
 
   async generateEventsReport(filters: GetEventsReportDto): Promise<EventsReportResult[]> {
     this.logger.info(`Generating events report with filters: ${JSON.stringify(filters)}`);
-
     try {
       const result = await this.reportsRepository.getEventsReport(filters);
       this.logger.info(`Generated events report with ${result.length} groups`);
@@ -39,7 +38,6 @@ export class ReportGenerator implements ReportGeneratorInterface {
 
   async generateRevenueReport(filters: GetRevenueReportDto): Promise<RevenueReportResult> {
     this.logger.info(`Generating revenue report with filters: ${JSON.stringify(filters)}`);
-
     try {
       const result = await this.reportsRepository.getRevenueReport(filters);
       this.logger.info(`Generated revenue report with total revenue: ${result.totalRevenue}`);
@@ -54,7 +52,6 @@ export class ReportGenerator implements ReportGeneratorInterface {
     filters: GetDemographicsReportDto,
   ): Promise<DemographicsReportResult[]> {
     this.logger.info(`Generating demographics report with filters: ${JSON.stringify(filters)}`);
-
     try {
       const result = await this.reportsRepository.getDemographicsReport(filters);
       this.logger.info(`Generated demographics report with ${result.length} users`);

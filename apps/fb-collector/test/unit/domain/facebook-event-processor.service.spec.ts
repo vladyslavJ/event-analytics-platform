@@ -22,7 +22,6 @@ describe('FacebookEventProcessor', () => {
   let mockLogger: jest.Mocked<LoggerInterface>;
 
   beforeEach(async () => {
-    // Create mocked dependencies
     mockEventRepository = {
       saveEvent: jest.fn(),
       findEventById: jest.fn(),
@@ -68,14 +67,11 @@ describe('FacebookEventProcessor', () => {
 
   describe('processEvent', () => {
     it('should successfully process a Facebook top event', async () => {
-      // Arrange
       mockUserRepository.upsertUser.mockResolvedValue(mockSavedUser);
       mockEventRepository.saveEvent.mockResolvedValue(mockSavedEvent);
 
-      // Act
       await processor.processEvent(mockFacebookTopEvent, mockCorrelationId);
 
-      // Assert
       expect(mockLogger.info).toHaveBeenCalledWith(
         `[${mockCorrelationId}] Processing event ${mockFacebookTopEvent.eventId} from Facebook`,
       );
@@ -93,14 +89,11 @@ describe('FacebookEventProcessor', () => {
     });
 
     it('should successfully process a Facebook bottom event with purchase', async () => {
-      // Arrange
       mockUserRepository.upsertUser.mockResolvedValue(mockSavedUser);
       mockEventRepository.saveEvent.mockResolvedValue(mockSavedEvent);
 
-      // Act
       await processor.processEvent(mockFacebookBottomEvent, mockCorrelationId);
 
-      // Assert
       expect(mockUserRepository.upsertUser).toHaveBeenCalledWith(
         mockFacebookBottomEvent.data.user,
         'facebook',
@@ -113,11 +106,9 @@ describe('FacebookEventProcessor', () => {
     });
 
     it('should handle user repository errors gracefully', async () => {
-      // Arrange
       const error = new Error('User repository failed');
       mockUserRepository.upsertUser.mockRejectedValue(error);
 
-      // Act & Assert
       await expect(processor.processEvent(mockFacebookTopEvent, mockCorrelationId)).rejects.toThrow(
         'User repository failed',
       );
@@ -130,12 +121,10 @@ describe('FacebookEventProcessor', () => {
     });
 
     it('should handle event repository errors gracefully', async () => {
-      // Arrange
       const error = new Error('Event repository failed');
       mockUserRepository.upsertUser.mockResolvedValue(mockSavedUser);
       mockEventRepository.saveEvent.mockRejectedValue(error);
 
-      // Act & Assert
       await expect(processor.processEvent(mockFacebookTopEvent, mockCorrelationId)).rejects.toThrow(
         'Event repository failed',
       );
@@ -153,23 +142,19 @@ describe('FacebookEventProcessor', () => {
 
   describe('error scenarios', () => {
     it('should propagate user upsert failures', async () => {
-      // Arrange
       const dbError = new Error('Database connection lost');
       mockUserRepository.upsertUser.mockRejectedValue(dbError);
 
-      // Act & Assert
       await expect(processor.processEvent(mockFacebookTopEvent, mockCorrelationId)).rejects.toThrow(
         'Database connection lost',
       );
     });
 
     it('should propagate event save failures', async () => {
-      // Arrange
       mockUserRepository.upsertUser.mockResolvedValue(mockSavedUser);
       const saveError = new Error('Failed to save event');
       mockEventRepository.saveEvent.mockRejectedValue(saveError);
 
-      // Act & Assert
       await expect(processor.processEvent(mockFacebookTopEvent, mockCorrelationId)).rejects.toThrow(
         'Failed to save event',
       );

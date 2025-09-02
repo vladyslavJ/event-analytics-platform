@@ -3,26 +3,15 @@ import { ConfigModule } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
 import { APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
-
-// Infrastructure modules
 import { NatsClientModule } from 'libs/nats/nats.module';
 import { MetricsModule } from 'libs/metrics/metrics.module';
 import { LoggerModule } from 'libs/logger/logger.module';
-
-// Presentation
 import { EventsController } from './presentation/controllers/events.controller';
 import { HealthController } from './presentation/controllers/health.controller';
-
-// Application
 import { EventProcessingService } from './application/services/event-processing.service';
-
-// Domain
 import { EventProcessor } from './domain/services/event-processor.service';
-
-// Infrastructure
 import { ZodEventValidator } from './infrastructure/validators/zod-event.validator';
 import { NatsEventPublisher } from './infrastructure/publishers/nats-event.publisher';
-
 import { GatewayDiTokens } from './infrastructure/di/gateway-di-tokens';
 
 @Module({
@@ -35,19 +24,15 @@ import { GatewayDiTokens } from './infrastructure/di/gateway-di-tokens';
   ],
   controllers: [EventsController, HealthController],
   providers: [
-    // Global validation pipe
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
     },
-    // Application services
     EventProcessingService,
-    // Domain services
     {
       provide: GatewayDiTokens.EVENT_PROCESSOR,
       useClass: EventProcessor,
     },
-    // Infrastructure implementations
     {
       provide: GatewayDiTokens.EVENT_VALIDATOR,
       useClass: ZodEventValidator,

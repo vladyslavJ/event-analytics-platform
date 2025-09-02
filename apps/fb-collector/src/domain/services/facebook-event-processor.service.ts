@@ -24,7 +24,6 @@ export class FacebookEventProcessor implements EventProcessorInterface {
 
   async processEvent(event: FacebookEventInterface, correlationId: string): Promise<void> {
     this.logger.info(`[${correlationId}] Processing event ${event.eventId} from Facebook`);
-
     try {
       const user = await this.userRepository.upsertUser(event.data.user, 'facebook');
       await this.eventRepository.saveEvent(event, user.id);

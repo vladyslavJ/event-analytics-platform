@@ -1,13 +1,10 @@
 export default () => ({
-  // Application settings
   app: {
     nodeEnv: process.env.NODE_ENV || 'development',
     debug: process.env.DEBUG === 'true',
     bodyLimit: process.env.BODY_SIZE_LIMIT || '50mb',
     rateLimit: parseInt(process.env.RATE_LIMIT ?? '1000', 10),
   },
-
-  // Services ports
   grafana: {
     port: parseInt(process.env.GRAFANA_PORT ?? '3000', 10),
   },
@@ -26,8 +23,6 @@ export default () => ({
   ttkCollector: {
     port: parseInt(process.env.TTK_COLLECTOR_PORT ?? '3020', 10),
   },
-
-  // Database configuration
   postgres: {
     host: process.env.POSTGRES_HOST || 'postgres',
     port: parseInt(process.env.POSTGRES_PORT ?? '5432', 10),
@@ -38,8 +33,6 @@ export default () => ({
       process.env.DATABASE_URL ||
       'postgresql://postgres:postgres@postgres:5432/events_db?schema=public',
   },
-
-  // NATS configuration
   nats: {
     port: parseInt(process.env.NATS_PORT ?? '4222', 10),
     url: process.env.NATS_URL || 'nats://nats:4222',
@@ -49,36 +42,24 @@ export default () => ({
     pingInterval: parseInt(process.env.NATS_PING_INTERVAL ?? '60000', 10),
     maxPingOut: parseInt(process.env.NATS_MAX_PING_OUT ?? '5', 10),
   },
-
-  // Logger configuration
   logger: {
     samplingRate: parseFloat(process.env.LOGGER_SAMPLING_RATE ?? '0.3'),
     logLevel: process.env.LOG_LEVEL || 'info',
   },
-
-  // Collector settings
   collectors: {
     connectRetries: parseInt(process.env.COLLECTOR_CONNECT_RETRIES ?? '5', 10),
     connectDelay: parseInt(process.env.COLLECTOR_CONNECT_DELAY ?? '5000', 10),
   },
-
-  // Health check settings
   health: {
     timeout: parseInt(process.env.HEALTH_CHECK_TIMEOUT ?? '5000', 10),
   },
-
-  // Event publisher settings
   publisher: {
     eventEndpoint: process.env.EVENT_ENDPOINT || 'http://gateway:3000/events',
   },
-
-  // Security settings
   security: {
     enableCors: process.env.ENABLE_CORS !== 'false',
     allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || ['*'],
   },
-
-  // Monitoring settings
   monitoring: {
     enableMetricsCollection: process.env.ENABLE_METRICS_COLLECTION === 'true',
     metricsRetentionDays: parseInt(process.env.METRICS_RETENTION_DAYS ?? '7', 10),

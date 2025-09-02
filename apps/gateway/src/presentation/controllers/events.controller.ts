@@ -23,7 +23,6 @@ export class EventsController {
       };
     }
     this.logger.info(`Received ${events.length} events for processing`);
-
     return this.eventProcessingService.handleEvents(events);
   }
 }

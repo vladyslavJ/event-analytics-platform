@@ -18,11 +18,9 @@ export class EventRepository implements EventRepositoryInterface {
   async saveEvent(event: FacebookEventInterface, userId: string): Promise<SavedEvent> {
     const mappedEvent = EventMapper.mapFromFacebookEvent(event, userId);
     const { engagement } = event.data;
-
     const existingEvent = await this.prisma.event.findUnique({
       where: { eventId: mappedEvent.eventId },
     });
-
     if (existingEvent) {
       return {
         id: existingEvent.id,
@@ -74,9 +72,7 @@ export class EventRepository implements EventRepositoryInterface {
     const result = await this.prisma.event.findUnique({
       where: { eventId },
     });
-
     if (!result) return null;
-
     return {
       id: result.id,
       eventId: result.eventId,

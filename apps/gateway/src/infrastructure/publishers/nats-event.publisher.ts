@@ -26,21 +26,16 @@ export class NatsEventPublisher implements EventPublisherInterface {
     let publishedCount = 0;
     let failedCount = 0;
 
-    // Batch processing - обробляємо по 10 подій одночасно
     const BATCH_SIZE = 10;
     const batches = this.chunkArray(events, BATCH_SIZE);
-
     for (const batch of batches) {
       const batchPromises = batch.map(async event => {
         const correlationId = randomUUID();
-
         try {
-          // Додаємо timeout для кожної публікації
           await Promise.race([
             this.natsPublisher.publishEvent({ ...event, correlationId }),
-            this.timeoutPromise(5000), // 5 секунд timeout
+            this.timeoutPromise(5000),
           ]);
-
           publishedCount++;
           this.logger.debug(`Published event ${event.eventId}`);
         } catch (error) {
@@ -49,19 +44,13 @@ export class NatsEventPublisher implements EventPublisherInterface {
         }
       });
 
-      // Обробляємо пакет
       await Promise.allSettled(batchPromises);
-
-      // Невелика затримка між пакетами для зменшення навантаження
       if (batches.indexOf(batch) < batches.length - 1) {
-        await this.delay(50); // 50ms пауза
+        await this.delay(50);
       }
     }
-
-    // Оновлюємо метрики одним разом
     this.metricsService.incrementProcessedEvents(publishedCount);
     this.metricsService.incrementFailedEvents(failedCount);
-
     return { publishedCount, failedCount };
   }
 

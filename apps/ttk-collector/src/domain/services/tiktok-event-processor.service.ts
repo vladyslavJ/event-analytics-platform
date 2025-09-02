@@ -24,14 +24,9 @@ export class TiktokEventProcessor implements EventProcessorInterface {
 
   async processEvent(event: TiktokEventInterface, correlationId: string): Promise<void> {
     this.logger.info(`[${correlationId}] Processing event ${event.eventId} from TikTok`);
-
     try {
-      // 1. Upsert user
       const user = await this.userRepository.upsertUser(event.data.user, 'tiktok');
-
-      // 2. Save event
       await this.eventRepository.saveEvent(event, user.id);
-
       this.logger.info(`[${correlationId}] Successfully processed event ${event.eventId}`);
     } catch (error) {
       this.logger.error(
