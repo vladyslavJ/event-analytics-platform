@@ -11,6 +11,8 @@ import { EVENT_CONSUMERS } from 'libs/common/constants/event-consumers.const';
 import { MetricsDiTokens } from 'libs/metrics/di/metrics-di-tokens';
 import type { CollectorsMetricsServiceInterface } from 'libs/metrics/interfaces/collector-metrics-service.interface';
 import { FbCollectorDiTokens } from '../../infrastructure/di/fb-events-di-tokens';
+import { FB_COLLECTOR_CONSTANTS } from '../../infrastructure/constants/fb-collector.const';
+import { CollectorSource } from 'libs/metrics/types/collector-sources.type';
 
 @Injectable()
 export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
@@ -44,7 +46,10 @@ export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
     this.logger.info('Message consumer shut down.');
   }
 
-  private async connectWithRetry(retries = 5, delay = 5000): Promise<void> {
+  private async connectWithRetry(
+    retries = FB_COLLECTOR_CONSTANTS.connectRetries,
+    delay = FB_COLLECTOR_CONSTANTS.connectDelay,
+  ): Promise<void> {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         this.logger.info(`Connecting to NATS stream (attempt ${attempt}/${retries})`);
@@ -106,7 +111,7 @@ export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
     const messages = await consumer.fetch({ max_messages: 10, expires: 5000 });
 
     for await (const msg of messages) {
-      this.metricsService.incrementConsumed('fb');
+      this.metricsService.incrementConsumed(CollectorSource.Facebook);
 
       try {
         const eventData = this.jsonCodec.decode(msg.data) as FacebookEventInterface & {
@@ -118,9 +123,9 @@ export class FacebookMessageConsumer implements OnModuleInit, OnModuleDestroy {
         await this.eventProcessor.processEvent(eventData, eventData.correlationId);
         await msg.ack();
 
-        this.metricsService.incrementProcessed('fb');
+        this.metricsService.incrementProcessed(CollectorSource.Facebook);
       } catch (error) {
-        this.metricsService.incrementFailed('fb');
+        this.metricsService.incrementFailed(CollectorSource.Facebook);
         this.logger.error('Failed to process message', error);
       }
     }

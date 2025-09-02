@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { JSONCodec, AckPolicy, NatsError } from 'nats';
+import { JSONCodec, AckPolicy } from 'nats';
 import type { JetStreamClient, NatsConnection, Consumer } from 'nats';
 import { NatsDiTokens } from 'libs/nats/di/nats-di-tokens';
 import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
@@ -11,6 +11,8 @@ import { EVENT_CONSUMERS } from 'libs/common/constants/event-consumers.const';
 import { MetricsDiTokens } from 'libs/metrics/di/metrics-di-tokens';
 import type { CollectorsMetricsServiceInterface } from 'libs/metrics/interfaces/collector-metrics-service.interface';
 import { TtkCollectorDiTokens } from '../../infrastructure/di/ttk-events-di-tokens';
+import { TTK_COLLECTOR_CONSTANTS } from '../../infrastructure/constants/ttk-collector.const';
+import { CollectorSource } from 'libs/metrics/types/collector-sources.type';
 
 @Injectable()
 export class TiktokMessageConsumer implements OnModuleInit, OnModuleDestroy {
@@ -44,7 +46,10 @@ export class TiktokMessageConsumer implements OnModuleInit, OnModuleDestroy {
     this.logger.info('Message consumer shut down.');
   }
 
-  private async connectWithRetry(retries = 5, delay = 5000): Promise<void> {
+  private async connectWithRetry(
+    retries = TTK_COLLECTOR_CONSTANTS.connectRetries,
+    delay = TTK_COLLECTOR_CONSTANTS.connectDelay,
+  ): Promise<void> {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         this.logger.info(`Connecting to NATS stream (attempt ${attempt}/${retries})`);
@@ -75,7 +80,6 @@ export class TiktokMessageConsumer implements OnModuleInit, OnModuleDestroy {
         await this.processMessages(consumer);
       } catch (error) {
         if (error.code !== '408') {
-          // Ignore timeout errors
           this.logger.error('Error processing messages', error);
         }
       }
@@ -107,7 +111,7 @@ export class TiktokMessageConsumer implements OnModuleInit, OnModuleDestroy {
     const messages = await consumer.fetch({ max_messages: 10, expires: 5000 });
 
     for await (const msg of messages) {
-      this.metricsService.incrementConsumed('ttk');
+      this.metricsService.incrementConsumed(CollectorSource.Tiktok);
 
       try {
         const eventData = this.jsonCodec.decode(msg.data) as TiktokEventInterface & {
@@ -119,9 +123,9 @@ export class TiktokMessageConsumer implements OnModuleInit, OnModuleDestroy {
         await this.eventProcessor.processEvent(eventData, eventData.correlationId);
         await msg.ack();
 
-        this.metricsService.incrementProcessed('ttk');
+        this.metricsService.incrementProcessed(CollectorSource.Tiktok);
       } catch (error) {
-        this.metricsService.incrementFailed('ttk');
+        this.metricsService.incrementFailed(CollectorSource.Tiktok);
         this.logger.error('Failed to process message', error);
       }
     }

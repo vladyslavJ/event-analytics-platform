@@ -1,4 +1,4 @@
-type CollectorSource = 'fb' | 'ttk';
+import { CollectorSource } from '../types/collector-sources.type';
 
 export interface CollectorsMetricsServiceInterface {
   incrementConsumed(source: CollectorSource): void;

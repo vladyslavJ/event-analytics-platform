@@ -5,6 +5,7 @@ import { NatsDiTokens } from 'libs/nats/di/nats-di-tokens';
 import configuration from '../config/configuration';
 import { LoggerModule } from 'libs/logger/logger.module';
 import { NatsHealthIndicator } from './health/nats-health-indicator.service';
+import { NatsPublisherService } from './nats-publisher.service';
 
 @Global()
 @Module({
@@ -15,6 +16,14 @@ import { NatsHealthIndicator } from './health/nats-health-indicator.service';
       useFactory: async (configService: ConfigService): Promise<NatsConnection> => {
         const natsConnection = await connect({
           servers: configService.get<string>('nats.url'),
+          // Оптимізація для високого навантаження
+          maxReconnectAttempts: 10,
+          reconnectTimeWait: 2000,
+          timeout: 10000,
+          pingInterval: 60000,
+          maxPingOut: 5,
+          // Буферизація для кращої продуктивності
+          noEcho: true,
         });
         return natsConnection;
       },
@@ -31,11 +40,13 @@ import { NatsHealthIndicator } from './health/nats-health-indicator.service';
       provide: NatsDiTokens.NATS_HEALTH_INDICATOR,
       useClass: NatsHealthIndicator,
     },
+    NatsPublisherService,
   ],
   exports: [
     NatsDiTokens.NATS_CONNECTION,
     NatsDiTokens.JETSTREAM_CLIENT,
     NatsDiTokens.NATS_HEALTH_INDICATOR,
+    NatsPublisherService,
   ],
 })
 export class NatsClientModule {}

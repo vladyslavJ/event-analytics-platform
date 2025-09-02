@@ -1,4 +1,4 @@
-import { Inject, Controller, Get, Header } from '@nestjs/common';
+import { Controller, Get, Header, Inject } from '@nestjs/common';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 import { NatsDiTokens } from 'libs/nats/di/nats-di-tokens';
 import type { NatsHealthIndicatorInterface } from 'libs/nats/interfaces/nats-health-indicator.interface';
@@ -9,26 +9,26 @@ collectDefaultMetrics({ prefix: 'gateway_' });
 @Controller('health')
 export class HealthController {
   constructor(
-    private health: HealthCheckService,
+    private readonly health: HealthCheckService,
     @Inject(NatsDiTokens.NATS_HEALTH_INDICATOR)
-    private natsHealth: NatsHealthIndicatorInterface,
+    private readonly natsHealth: NatsHealthIndicatorInterface,
   ) {}
 
   @Get('live')
   @HealthCheck()
-  live() {
+  checkLiveness() {
     return this.health.check([]);
   }
 
   @Get('ready')
   @HealthCheck()
-  ready() {
+  checkReadiness() {
     return this.health.check([() => this.natsHealth.isHealthy('nats')]);
   }
 
   @Get('metrics')
   @Header('Content-Type', register.contentType)
-  async metrics(): Promise<string> {
+  async getMetrics(): Promise<string> {
     return register.metrics();
   }
 }

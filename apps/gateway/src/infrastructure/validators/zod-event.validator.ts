@@ -1,21 +1,23 @@
 import { Injectable, Inject } from '@nestjs/common';
+import type {
+  EventValidatorInterface,
+  ValidationResult,
+} from '../../domain/interfaces/event-validator.interface';
 import { EventSchema } from './schemas/event.schema';
-import { EventsServiceInterface } from './interfaces/events-service.interface';
-import { ProcessedEventsResultInterface } from './interfaces/processed-events-result.interface';
-import { ValidEvent } from './schemas/event.schema';
-import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
 import type { LoggerInterface } from 'libs/logger/interfaces/logger.interface';
+import { LoggerDiTokens } from 'libs/logger/di/logger-di-tokens';
 
 @Injectable()
-export class EventsService implements EventsServiceInterface {
+export class ZodEventValidator implements EventValidatorInterface {
   constructor(
     @Inject(LoggerDiTokens.LOGGER)
     private readonly logger: LoggerInterface,
   ) {
-    this.logger.setContext(EventsService.name);
+    this.logger.setContext(ZodEventValidator.name);
   }
-  processAndFilterEvents(events: Record<string, unknown>[]): ProcessedEventsResultInterface {
-    const validEvents: ValidEvent[] = [];
+
+  validateEvents(events: Record<string, unknown>[]): ValidationResult {
+    const validEvents: any[] = [];
     let invalidCount = 0;
 
     for (const event of events) {
@@ -23,10 +25,10 @@ export class EventsService implements EventsServiceInterface {
 
       if (validationResult.success) {
         validEvents.push(validationResult.data);
-        this.logger.info('VALID');
+        this.logger.debug(`Valid event: ${event.eventId || 'unknown'}`);
       } else {
         invalidCount++;
-        this.logger.warn('INVALID');
+        this.logger.warn(`Invalid event: ${JSON.stringify(validationResult.error.issues)}`);
       }
     }
 
