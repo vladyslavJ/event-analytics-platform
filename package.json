@@ -13,6 +13,25 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/universe-group-test-case/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:fb-collector": "jest --selectProjects=\"FB Collector\"",
+    "test:fb-collector:watch": "jest --selectProjects=\"FB Collector\" --watch",
+    "test:fb-collector:coverage": "jest --selectProjects=\"FB Collector\" --coverage",
+    "test:ttk-collector": "jest --selectProjects=\"TTK Collector\"",
+    "test:ttk-collector:watch": "jest --selectProjects=\"TTK Collector\" --watch",
+    "test:ttk-collector:coverage": "jest --selectProjects=\"TTK Collector\" --coverage",
+    "test:gateway": "jest --selectProjects=\"Gateway\"",
+    "test:gateway:watch": "jest --selectProjects=\"Gateway\" --watch",
+    "test:gateway:coverage": "jest --selectProjects=\"Gateway\" --coverage",
+    "test:reporter": "jest --selectProjects=\"Reporter\"",
+    "test:reporter:watch": "jest --selectProjects=\"Reporter\" --watch",
+    "test:reporter:coverage": "jest --selectProjects=\"Reporter\" --coverage",
+    "test:libs": "jest --selectProjects=\"Libs\"",
+    "test:libs:watch": "jest --selectProjects=\"Libs\" --watch",
+    "test:libs:coverage": "jest --selectProjects=\"Libs\" --coverage",
     "db:migrate:dev": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
@@ -62,25 +81,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": ".",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "./coverage",
-    "testEnvironment": "node",
-    "roots": [
-      "<rootDir>/apps/"
-    ]
   }
 }

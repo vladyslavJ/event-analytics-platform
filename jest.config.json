@@ -1,0 +1,86 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "moduleNameMapper": {
+    "^libs/(.*)$": "<rootDir>/libs/$1"
+  },
+  "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+  "projects": [
+    {
+      "displayName": "FB Collector",
+      "preset": "ts-jest",
+      "testEnvironment": "node",
+      "moduleNameMapper": {
+        "^libs/(.*)$": "<rootDir>/libs/$1"
+      },
+      "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+      "testMatch": ["<rootDir>/apps/fb-collector/test/**/*.spec.ts"],
+      "collectCoverageFrom": [
+        "apps/fb-collector/src/**/*.ts",
+        "!apps/fb-collector/src/**/*.module.ts",
+        "!apps/fb-collector/src/main.ts"
+      ],
+      "coverageDirectory": "coverage/fb-collector"
+    },
+    {
+      "displayName": "TTK Collector",
+      "preset": "ts-jest",
+      "testEnvironment": "node",
+      "moduleNameMapper": {
+        "^libs/(.*)$": "<rootDir>/libs/$1"
+      },
+      "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+      "testMatch": ["<rootDir>/apps/ttk-collector/test/**/*.spec.ts"],
+      "collectCoverageFrom": [
+        "apps/ttk-collector/src/**/*.ts",
+        "!apps/ttk-collector/src/**/*.module.ts",
+        "!apps/ttk-collector/src/main.ts"
+      ],
+      "coverageDirectory": "coverage/ttk-collector"
+    },
+    {
+      "displayName": "Gateway",
+      "preset": "ts-jest",
+      "testEnvironment": "node",
+      "moduleNameMapper": {
+        "^libs/(.*)$": "<rootDir>/libs/$1"
+      },
+      "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+      "testMatch": ["<rootDir>/apps/gateway/test/**/*.spec.ts"],
+      "collectCoverageFrom": [
+        "apps/gateway/src/**/*.ts",
+        "!apps/gateway/src/**/*.module.ts",
+        "!apps/gateway/src/main.ts"
+      ],
+      "coverageDirectory": "coverage/gateway"
+    },
+    {
+      "displayName": "Reporter",
+      "preset": "ts-jest",
+      "testEnvironment": "node",
+      "moduleNameMapper": {
+        "^libs/(.*)$": "<rootDir>/libs/$1"
+      },
+      "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+      "testMatch": ["<rootDir>/apps/reporter/test/**/*.spec.ts"],
+      "collectCoverageFrom": [
+        "apps/reporter/src/**/*.ts",
+        "!apps/reporter/src/**/*.module.ts",
+        "!apps/reporter/src/main.ts"
+      ],
+      "coverageDirectory": "coverage/reporter"
+    },
+    {
+      "displayName": "Libs",
+      "preset": "ts-jest",
+      "testEnvironment": "node",
+      "moduleNameMapper": {
+        "^libs/(.*)$": "<rootDir>/libs/$1"
+      },
+      "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+      "testMatch": ["<rootDir>/libs/**/test/**/*.spec.ts"],
+      "collectCoverageFrom": ["libs/**/*.ts", "!libs/**/*.module.ts", "!libs/**/index.ts"],
+      "coverageDirectory": "coverage/libs"
+    }
+  ]
+}
