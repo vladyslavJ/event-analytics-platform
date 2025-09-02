@@ -60,7 +60,9 @@ export class LoggerService implements LoggerInterface {
   }
 
   debug(message: string) {
-    if (process.env.DEBUG === 'true') {
+    const debugEnabled =
+      this.configService.get<boolean>('app.debug', false) || process.env.DEBUG === 'true';
+    if (debugEnabled) {
       const logMsg = `[${this.timestamp()}] [DEBUG] [${this.context}] ${message}`;
       console.debug(logMsg);
       this.writeToFile('debug', message);

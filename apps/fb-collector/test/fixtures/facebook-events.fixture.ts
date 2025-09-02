@@ -1,13 +1,13 @@
 import { FacebookEventInterface } from 'libs/common/interfaces/facebook-event.interface';
 import { EventSource } from 'libs/common/enums/event-source.enum';
 import { FunnelStage } from 'libs/common/enums/funnel-stage.enum';
-import { 
-  FacebookTopEvent, 
-  FacebookBottomEvent, 
+import {
+  FacebookTopEvent,
+  FacebookBottomEvent,
   Gender,
   ClickPosition,
   Device,
-  Browser
+  Browser,
 } from 'libs/common/enums/facebook-event.enum';
 
 export const mockFacebookTopEvent: FacebookEventInterface = {
@@ -24,8 +24,8 @@ export const mockFacebookTopEvent: FacebookEventInterface = {
       gender: Gender.Male,
       location: {
         country: 'USA',
-        city: 'New York'
-      }
+        city: 'New York',
+      },
     },
     engagement: {
       adId: 'ad_123',
@@ -33,9 +33,9 @@ export const mockFacebookTopEvent: FacebookEventInterface = {
       clickPosition: ClickPosition.Center,
       device: Device.Desktop,
       browser: Browser.Chrome,
-      purchaseAmount: null
-    }
-  }
+      purchaseAmount: null,
+    },
+  },
 };
 
 export const mockFacebookBottomEvent: FacebookEventInterface = {
@@ -52,8 +52,8 @@ export const mockFacebookBottomEvent: FacebookEventInterface = {
       gender: Gender.Male,
       location: {
         country: 'UK',
-        city: 'London'
-      }
+        city: 'London',
+      },
     },
     engagement: {
       adId: 'ad_999',
@@ -61,9 +61,9 @@ export const mockFacebookBottomEvent: FacebookEventInterface = {
       clickPosition: ClickPosition.TopLeft,
       device: Device.Mobile,
       browser: Browser.Safari,
-      purchaseAmount: '99.99'
-    }
-  }
+      purchaseAmount: '99.99',
+    },
+  },
 };
 
 export const mockUserData = {
@@ -73,8 +73,8 @@ export const mockUserData = {
   gender: Gender.Female,
   location: {
     country: 'Germany',
-    city: 'Berlin'
-  }
+    city: 'Berlin',
+  },
 };
 
 export const mockSavedEvent = {
@@ -84,7 +84,7 @@ export const mockSavedEvent = {
   source: 'facebook',
   funnelStage: 'top',
   eventType: 'ad.view',
-  userId: 'user_123'
+  userId: 'user_123',
 };
 
 export const mockSavedUser = {
@@ -95,7 +95,7 @@ export const mockSavedUser = {
   age: 28,
   gender: 'male',
   country: 'USA',
-  city: 'New York'
+  city: 'New York',
 };
 
 export const mockCorrelationId = 'correlation_123_456';
@@ -103,5 +103,5 @@ export const mockCorrelationId = 'correlation_123_456';
 export const mockNatsMessage = {
   data: new TextEncoder().encode(JSON.stringify(mockFacebookTopEvent)),
   ack: jest.fn(),
-  nak: jest.fn()
+  nak: jest.fn(),
 };

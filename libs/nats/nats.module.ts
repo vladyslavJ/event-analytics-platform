@@ -17,11 +17,11 @@ import { NatsPublisherService } from './nats-publisher.service';
         const natsConnection = await connect({
           servers: configService.get<string>('nats.url'),
           // Оптимізація для високого навантаження
-          maxReconnectAttempts: 10,
-          reconnectTimeWait: 2000,
-          timeout: 10000,
-          pingInterval: 60000,
-          maxPingOut: 5,
+          maxReconnectAttempts: configService.get<number>('nats.maxReconnectAttempts', 10),
+          reconnectTimeWait: configService.get<number>('nats.reconnectTimeWait', 2000),
+          timeout: configService.get<number>('nats.timeout', 10000),
+          pingInterval: configService.get<number>('nats.pingInterval', 60000),
+          maxPingOut: configService.get<number>('nats.maxPingOut', 5),
           // Буферизація для кращої продуктивності
           noEcho: true,
         });
