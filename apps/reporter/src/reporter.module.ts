@@ -49,4 +49,4 @@ import { ReporterDiTokens } from './infrastructure/di/reporter-di-tokens';
     },
   ],
 })
-export class ReporterRefactoredModule {}
+export class ReporterModule {}
